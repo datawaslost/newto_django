@@ -9,9 +9,9 @@ class Profile(models.Model):
 	hometown = models.CharField(max_length=30, blank=True)
 	joined = models.DateField(auto_now_add=True)
 	last_change = models.DateField(auto_now=True)
-	school = models.ForeignKey('School', on_delete=models.SET_NULL, blank=True, null=True)
-	todo = models.ManyToManyField('Item', through='Todo')
-	bookmarks = models.ManyToManyField('Item', through='Bookmark')
+	school = models.ForeignKey('School', related_name='profile_school', on_delete=models.SET_NULL, blank=True, null=True)
+	todo = models.ManyToManyField('Item', through='Todo', related_name='profile_todo')
+	bookmarks = models.ManyToManyField('Item', through='Bookmark', related_name='profile_bookmarks')
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
@@ -25,13 +25,13 @@ def save_user_profile(sender, instance, **kwargs):
 
 class Metro(models.Model):
 	name = models.CharField(max_length=128, unique=True)
-	default_items = models.ManyToManyField('Item')
-	discover_items = models.ManyToManyField('Item')
+	default_items = models.ManyToManyField('Item', related_name='metro_default_items')
+	discover_items = models.ManyToManyField('Item', related_name='metro_discover_items')
 	tips = models.ManyToManyField('Tip')
 
 
 class School(Metro):
-	metro = models.ForeignKey('Metro', on_delete=models.SET_NULL, blank=True, null=True)
+	metro = models.ForeignKey('Metro', related_name='school_metro', on_delete=models.SET_NULL, blank=True, null=True)
 	public = models.BooleanField(default=True)
 
 
@@ -60,7 +60,7 @@ class Item(models.Model):
 
 
 class Group(Item):
-	items = models.ManyToManyField('Item', symmetrical=False)
+	items = models.ManyToManyField('Item', related_name='group_items', symmetrical=False)
 
 
 class Place(Item):
@@ -97,15 +97,15 @@ class Rating(models.Model):
 
 
 class Todo(models.Model):
-	profile = models.ForeignKey('Profile', on_delete=models.CASCADE)
-	item = models.ForeignKey('Item', on_delete=models.CASCADE)
+	profile = models.ForeignKey('Profile', related_name='todo_profile', on_delete=models.CASCADE)
+	item = models.ForeignKey('Item', related_name='todo_item', on_delete=models.CASCADE)
 	order = models.IntegerField()
 	done = models.BooleanField(default=False)
 	# need to add unique constraints to prevent duplicate items?
 
 
 class Bookmark(models.Model):
-	profile = models.ForeignKey('Profile', on_delete=models.CASCADE)
-	item = models.ForeignKey('Item', on_delete=models.CASCADE)
+	profile = models.ForeignKey('Profile', related_name='bookmark_profile', on_delete=models.CASCADE)
+	item = models.ForeignKey('Item', related_name='bookmark_item', on_delete=models.CASCADE)
 	datetime = models.DateTimeField(auto_now_add=True)
 	# need to add unique constraints to prevent duplicate items?
