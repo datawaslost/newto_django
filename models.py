@@ -3,6 +3,9 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from localflavor.us.models import USStateField
+from phonenumber_field.modelfields import PhoneNumberField
+
 
 class Profile(models.Model):
 	user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -69,10 +72,12 @@ class Group(Item):
 class Place(Item):
 	metro = models.ForeignKey('Metro', on_delete=models.SET_NULL, blank=True, null=True)
 	address = models.CharField(max_length=128)
-	# need city/state/zip?
-	hours = models.CharField(max_length=128)
-	# need more complex hours field
-	phone = models.CharField(max_length=128)
+	city = models.CharField(max_length=128)
+	state = USStateField()
+	# need zip?
+	# hours = models.CharField(max_length=128)
+	# need more complex hours field, currently using openinghours
+	phone = PhoneNumberField(blank=True)
 	featured = models.BooleanField(default=False)
 	category = models.ForeignKey('Category', on_delete=models.SET_NULL, blank=True, null=True)
 	tags = models.ManyToManyField('Tag')
