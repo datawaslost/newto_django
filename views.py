@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 import datetime
-from newto_django import models
+from . import models
 
 def test(request):
 	test_models = models.Profile.objects.all()
