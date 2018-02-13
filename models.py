@@ -9,6 +9,7 @@ class Profile(models.Model):
 	hometown = models.CharField(max_length=30, blank=True)
 	joined = models.DateField(auto_now_add=True)
 	last_change = models.DateField(auto_now=True)
+	metro = models.ForeignKey('Metro', related_name='profile_metro', on_delete=models.SET_NULL, blank=True, null=True)
 	school = models.ForeignKey('School', related_name='profile_school', on_delete=models.SET_NULL, blank=True, null=True)
 	todo = models.ManyToManyField('Item', through='Todo', related_name='profile_todo')
 	bookmarks = models.ManyToManyField('Item', through='Bookmark', related_name='profile_bookmarks')
@@ -25,14 +26,15 @@ def save_user_profile(sender, instance, **kwargs):
 
 class Metro(models.Model):
 	name = models.CharField(max_length=128, unique=True)
+	public = models.BooleanField(default=True)
 	default_items = models.ManyToManyField('Item', related_name='metro_default_items')
 	discover_items = models.ManyToManyField('Item', related_name='metro_discover_items')
 	tips = models.ManyToManyField('Tip')
+	# need a through modeal to organize tips or default/discover items?
 
 
 class School(Metro):
 	metro = models.ForeignKey('Metro', related_name='school_metro', on_delete=models.SET_NULL, blank=True, null=True)
-	public = models.BooleanField(default=True)
 
 
 class ProspectiveUser(models.Model):
@@ -53,6 +55,7 @@ class Item(models.Model):
 	sponsor = models.CharField(max_length=128)
 	link = models.URLField()
 	image = models.ImageField()
+	# use thumbnail field for image?
 	ctas = models.ManyToManyField('Cta')
 
 	def __str__(self):
@@ -66,7 +69,9 @@ class Group(Item):
 class Place(Item):
 	metro = models.ForeignKey('Metro', on_delete=models.SET_NULL, blank=True, null=True)
 	address = models.CharField(max_length=128)
+	# need city/state/zip?
 	hours = models.CharField(max_length=128)
+	# need more complex hours field
 	phone = models.CharField(max_length=128)
 	featured = models.BooleanField(default=False)
 	category = models.ForeignKey('Category', on_delete=models.SET_NULL, blank=True, null=True)
