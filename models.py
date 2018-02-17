@@ -30,9 +30,9 @@ def save_user_profile(sender, instance, **kwargs):
 class Metro(models.Model):
 	name = models.CharField(max_length=128, unique=True)
 	public = models.BooleanField(default=True)
-	default_items = models.ManyToManyField('Item', related_name='metro_default_items')
-	discover_items = models.ManyToManyField('Item', related_name='metro_discover_items')
-	tips = models.ManyToManyField('Tip')
+	default_items = models.ManyToManyField('Item', related_name='metro_default_items', blank=True)
+	discover_items = models.ManyToManyField('Item', related_name='metro_discover_items', blank=True)
+	tips = models.ManyToManyField('Tip', blank=True)
 	# need a through modeal to organize tips or default/discover items?
 
 
@@ -59,7 +59,7 @@ class Item(models.Model):
 	link = models.URLField()
 	image = models.ImageField()
 	# use thumbnail field for image?
-	ctas = models.ManyToManyField('Cta')
+	ctas = models.ManyToManyField('Cta', blank=True)
 
 	def __str__(self):
 		return self.name
@@ -80,14 +80,14 @@ class Place(Item):
 	phone = PhoneNumberField(blank=True)
 	featured = models.BooleanField(default=False)
 	category = models.ForeignKey('Category', on_delete=models.SET_NULL, blank=True, null=True)
-	tags = models.ManyToManyField('Tag')
-	ratings = models.ManyToManyField('Profile', through='Rating')
+	tags = models.ManyToManyField('Tag', blank=True)
+	ratings = models.ManyToManyField('Profile', through='Rating', blank=True)
 
 
 class Category(models.Model):
 	name = models.CharField(max_length=128, unique=True)
 	image = models.ImageField()
-	tags = models.ManyToManyField('Tag')
+	tags = models.ManyToManyField('Tag', blank=True)
 
 
 class Tag(models.Model):
