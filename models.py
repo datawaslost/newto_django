@@ -17,6 +17,9 @@ class Profile(models.Model):
 	todo = models.ManyToManyField('Item', through='Todo', related_name='profile_todo')
 	bookmarks = models.ManyToManyField('Item', through='Bookmark', related_name='profile_bookmarks')
 
+	def __str__(self):
+		return self.user.email
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
 	if created:
@@ -34,6 +37,9 @@ class Metro(models.Model):
 	discover_items = models.ManyToManyField('Item', related_name='metro_discover_items', blank=True)
 	tips = models.ManyToManyField('Tip', blank=True)
 	# need a through modeal to organize tips or default/discover items?
+	
+	def __str__(self):
+		return self.name
 
 
 class School(Metro):
@@ -43,12 +49,18 @@ class School(Metro):
 class ProspectiveUser(models.Model):
 	email = models.EmailField(unique=True)
 	school = models.ForeignKey('School', on_delete=models.CASCADE)
+	
+	def __str__(self):
+		return self.email
 
 
 class Tip(models.Model):
 	name = models.CharField(max_length=128)
 	content = models.TextField()
 	# keep track of whether seen by user or not?
+	
+	def __str__(self):
+		return self.name
 
 
 class Item(models.Model):
@@ -89,14 +101,23 @@ class Category(models.Model):
 	image = models.ImageField()
 	tags = models.ManyToManyField('Tag', blank=True)
 
+	def __str__(self):
+		return self.name
+
 
 class Tag(models.Model):
 	name = models.CharField(max_length=128, unique=True)
+
+	def __str__(self):
+		return self.name
 
 
 class Cta(models.Model):
 	name = models.CharField(max_length=128)
 	link = models.URLField()
+
+	def __str__(self):
+		return self.name
 
 
 class Rating(models.Model):
