@@ -41,8 +41,16 @@ class Metro(models.Model):
 		return self.name
 
 
-class Organization(Metro):
+class Organization(models.Model):
+	name = models.CharField(max_length=128, unique=True)
 	metro = models.ForeignKey('Metro', related_name='organization_metro', on_delete=models.SET_NULL, blank=True, null=True, help_text="The Metro Area this Organization is located in, to share items")
+	public = models.BooleanField(default=True)
+	default_items = models.ManyToManyField('Item', through='Default', related_name='metro_default_items', blank=True, help_text="Default Items for new user")
+	discover_items = models.ManyToManyField('Item', through='Discover', related_name='metro_discover_items', blank=True, help_text="Items to show under 'Discover'")
+	tips = models.ManyToManyField('Tip', blank=True, help_text="Tips to display")
+	
+	def __str__(self):
+		return self.name
 
 
 class ProspectiveUser(models.Model):
