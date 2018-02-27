@@ -45,8 +45,8 @@ class Organization(models.Model):
 	name = models.CharField(max_length=128, unique=True)
 	metro = models.ForeignKey('Metro', related_name='organization_metro', on_delete=models.SET_NULL, blank=True, null=True, help_text="The Metro Area this Organization is located in, to share items")
 	public = models.BooleanField(default=True)
-	default_items = models.ManyToManyField('Item', through='Default', related_name='metro_default_items', blank=True, help_text="Default Items for new user")
-	discover_items = models.ManyToManyField('Item', through='Discover', related_name='metro_discover_items', blank=True, help_text="Items to show under 'Discover'")
+	default_items = models.ManyToManyField('Item', through='Default', related_name='organization_default_items', blank=True, help_text="Default Items for new user")
+	discover_items = models.ManyToManyField('Item', through='Discover', related_name='organization_discover_items', blank=True, help_text="Items to show under 'Discover'")
 	tips = models.ManyToManyField('Tip', blank=True, help_text="Tips to display")
 	
 	def __str__(self):
@@ -97,7 +97,7 @@ class Place(Item):
 	# need zip?
 	# hours = models.CharField(max_length=128)
 	# need more complex hours field, currently using openinghours
-	phone = PhoneNumberField(blank=True)
+	phone = PhoneNumberField(blank=True, verbose_name="Phone Number")
 	featured = models.BooleanField(default=False, help_text="Does this place show up as featured in search results?")
 	category = models.ForeignKey('Category', on_delete=models.SET_NULL, blank=True, null=True, help_text="Category that this place appears under in search results")
 	tags = models.ManyToManyField('Tag', blank=True)
@@ -157,7 +157,8 @@ class Bookmark(models.Model):
 
 
 class Discover(models.Model):
-	metro = models.ForeignKey('Metro', related_name='discover_metro', on_delete=models.CASCADE)
+	metro = models.ForeignKey('Metro', related_name='discover_metro', on_delete=models.CASCADE, blank=True, null=True)
+	organization = models.ForeignKey('Organization', related_name='discover_organization', on_delete=models.CASCADE, blank=True, null=True)
 	item = models.ForeignKey('Item', related_name='discover_item', on_delete=models.CASCADE)
 	order = models.IntegerField()
 	
@@ -166,7 +167,8 @@ class Discover(models.Model):
 
 
 class Default(models.Model):
-	metro = models.ForeignKey('Metro', related_name='default_metro', on_delete=models.CASCADE)
+	metro = models.ForeignKey('Metro', related_name='default_metro', on_delete=models.CASCADE, blank=True, null=True)
+	organization = models.ForeignKey('Organization', related_name='default_organization', on_delete=models.CASCADE, blank=True, null=True)
 	item = models.ForeignKey('Item', related_name='default_item', on_delete=models.CASCADE)
 	order = models.IntegerField()
 	
