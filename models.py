@@ -33,10 +33,9 @@ def save_user_profile(sender, instance, **kwargs):
 class Metro(models.Model):
 	name = models.CharField(max_length=128, unique=True)
 	public = models.BooleanField(default=True)
-	default_items = models.ManyToManyField('Item', related_name='metro_default_items', blank=True)
-	discover_items = models.ManyToManyField('Item', related_name='metro_discover_items', blank=True)
+	default_items = models.ManyToManyField('Item', through='Default', related_name='metro_default_items', blank=True)
+	discover_items = models.ManyToManyField('Item', through='Discover', related_name='metro_discover_items', blank=True)
 	tips = models.ManyToManyField('Tip', blank=True)
-	# need a through modeal to organize tips or default/discover items?
 	
 	def __str__(self):
 		return self.name
@@ -65,13 +64,14 @@ class Tip(models.Model):
 
 class Item(models.Model):
 	name = models.CharField(max_length=128)
-	content = models.TextField()
+	content = models.TextField(blank=True)
 	public = models.BooleanField(default=False)
-	sponsor = models.CharField(max_length=128)
-	link = models.URLField()
-	image = models.ImageField()
+	sponsor = models.CharField(max_length=128, blank=True)
+	link = models.URLField(blank=True)
+	image = models.ImageField(blank=True)
 	# use thumbnail field for image?
 	ctas = models.ManyToManyField('Cta', blank=True)
+	next = models.ManyToManyField('Item', related_name='next_items', symmetrical=False, blank=True)
 
 	def __str__(self):
 		return self.name
@@ -82,7 +82,7 @@ class Group(Item):
 
 
 class Place(Item):
-	metro = models.ForeignKey('Metro', on_delete=models.SET_NULL, blank=True, null=True)
+	metro = models.ManyToManyField('Metro', related_name='place_metro', blank=True)
 	address = models.CharField(max_length=128)
 	city = models.CharField(max_length=128)
 	state = USStateField()
@@ -98,7 +98,7 @@ class Place(Item):
 
 class Category(models.Model):
 	name = models.CharField(max_length=128, unique=True)
-	image = models.ImageField()
+	image = models.ImageField(blank=True)
 	tags = models.ManyToManyField('Tag', blank=True)
 
 	def __str__(self):
@@ -143,3 +143,15 @@ class Bookmark(models.Model):
 	item = models.ForeignKey('Item', related_name='bookmark_item', on_delete=models.CASCADE)
 	datetime = models.DateTimeField(auto_now_add=True)
 	# need to add unique constraints to prevent duplicate items?
+
+
+class Discover(models.Model):
+	metro = models.ForeignKey('Metro', related_name='discover_metro', on_delete=models.CASCADE)
+	item = models.ForeignKey('Item', related_name='discover_item', on_delete=models.CASCADE)
+	order = models.IntegerField()
+
+
+class Default(models.Model):
+	metro = models.ForeignKey('Metro', related_name='default_metro', on_delete=models.CASCADE)
+	item = models.ForeignKey('Item', related_name='default_item', on_delete=models.CASCADE)
+	order = models.IntegerField()
