@@ -16,20 +16,20 @@ admin.site.register(Tag)
 admin.site.register(Cta)
 
 class DiscoverInline(admin.TabularInline):
-    model = Discover
-    extra = 1
+	model = Discover
+	extra = 1
 
 class DefaultInline(admin.TabularInline):
-    model = Default
-    extra = 1
+	model = Default
+	extra = 1
 
 class TipInline(admin.TabularInline):
-    model = Metro.tips.through
-    extra = 1
-    verbose_name = "tip"
+	model = Metro.tips.through
+	extra = 1
+	verbose_name = "tip"
     
 class MetroAdmin(admin.ModelAdmin):
-    fields = ('name', 'public')
-    inlines = (DiscoverInline, DefaultInline, TipInline)
+	exclude = ('tip',)
+	inlines = (DiscoverInline, DefaultInline, TipInline)
 
 admin.site.register(Metro, MetroAdmin)
