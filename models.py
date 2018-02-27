@@ -136,7 +136,9 @@ class Todo(models.Model):
 	order = models.IntegerField()
 	done = models.BooleanField(default=False)
 	# need to add unique constraints to prevent duplicate items?
-
+	
+	class Meta:
+		verbose_name = "todo item"
 
 class Bookmark(models.Model):
 	profile = models.ForeignKey('Profile', related_name='bookmark_profile', on_delete=models.CASCADE)
@@ -149,9 +151,14 @@ class Discover(models.Model):
 	metro = models.ForeignKey('Metro', related_name='discover_metro', on_delete=models.CASCADE)
 	item = models.ForeignKey('Item', related_name='discover_item', on_delete=models.CASCADE)
 	order = models.IntegerField()
-
+	
+	class Meta:
+		verbose_name = "discover item"
 
 class Default(models.Model):
 	metro = models.ForeignKey('Metro', related_name='default_metro', on_delete=models.CASCADE)
 	item = models.ForeignKey('Item', related_name='default_item', on_delete=models.CASCADE)
 	order = models.IntegerField()
+	
+	class Meta:
+		verbose_name = "default item"

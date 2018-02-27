@@ -22,8 +22,14 @@ class DiscoverInline(admin.TabularInline):
 class DefaultInline(admin.TabularInline):
     model = Default
     extra = 1
+
+class TipInline(admin.TabularInline):
+    model = Metro.tips.through
+    extra = 1
+    verbose_name = "tip"
     
 class MetroAdmin(admin.ModelAdmin):
-    inlines = (DiscoverInline, DefaultInline)
+    fields = ('name', 'public')
+    inlines = (DiscoverInline, DefaultInline, TipInline)
 
 admin.site.register(Metro, MetroAdmin)
