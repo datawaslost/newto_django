@@ -18,10 +18,12 @@ admin.site.register(Cta)
 class DiscoverInline(admin.TabularInline):
 	model = Discover
 	extra = 1
+	ordering = ['order']
 
 class DefaultInline(admin.TabularInline):
 	model = Default
 	extra = 1
+	ordering = ['order']
 
 class TipInline(admin.TabularInline):
 	model = Metro.tips.through
@@ -29,7 +31,7 @@ class TipInline(admin.TabularInline):
 	verbose_name = "tip"
     
 class MetroAdmin(admin.ModelAdmin):
-	exclude = ('tip',)
+	exclude = ('tips',)
 	inlines = (DiscoverInline, DefaultInline, TipInline)
 
 admin.site.register(Metro, MetroAdmin)
