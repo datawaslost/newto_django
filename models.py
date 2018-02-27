@@ -13,7 +13,7 @@ class Profile(models.Model):
 	joined = models.DateField(auto_now_add=True, help_text="Date the user joined")
 	last_change = models.DateField(auto_now=True, help_text="Date the user data was last changed")
 	metro = models.ForeignKey('Metro', related_name='profile_metro', on_delete=models.SET_NULL, blank=True, null=True)
-	school = models.ForeignKey('School', related_name='profile_school', on_delete=models.SET_NULL, blank=True, null=True)
+	organization = models.ForeignKey('Organization', related_name='profile_organization', on_delete=models.SET_NULL, blank=True, null=True)
 	todo = models.ManyToManyField('Item', through='Todo', related_name='profile_todo')
 	bookmarks = models.ManyToManyField('Item', through='Bookmark', related_name='profile_bookmarks')
 
@@ -41,13 +41,13 @@ class Metro(models.Model):
 		return self.name
 
 
-class School(Metro):
-	metro = models.ForeignKey('Metro', related_name='school_metro', on_delete=models.SET_NULL, blank=True, null=True, help_text="The Metro Area this School is located in, to share items")
+class Organization(Metro):
+	metro = models.ForeignKey('Metro', related_name='organization_metro', on_delete=models.SET_NULL, blank=True, null=True, help_text="The Metro Area this Organization is located in, to share items")
 
 
 class ProspectiveUser(models.Model):
 	email = models.EmailField(unique=True)
-	school = models.ForeignKey('School', on_delete=models.CASCADE)
+	organization = models.ForeignKey('Organization', on_delete=models.CASCADE)
 	
 	def __str__(self):
 		return self.email
@@ -140,6 +140,7 @@ class Todo(models.Model):
 	class Meta:
 		verbose_name = "todo item"
 
+
 class Bookmark(models.Model):
 	profile = models.ForeignKey('Profile', related_name='bookmark_profile', on_delete=models.CASCADE)
 	item = models.ForeignKey('Item', related_name='bookmark_item', on_delete=models.CASCADE)
@@ -154,6 +155,7 @@ class Discover(models.Model):
 	
 	class Meta:
 		verbose_name = "discover item"
+
 
 class Default(models.Model):
 	metro = models.ForeignKey('Metro', related_name='default_metro', on_delete=models.CASCADE)

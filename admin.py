@@ -6,7 +6,7 @@ class ProfileAdmin(admin.ModelAdmin):
 admin.site.register(Profile, ProfileAdmin)
 
 admin.site.register(ProspectiveUser)
-admin.site.register(School)
+admin.site.register(Organization)
 admin.site.register(Tip)
 admin.site.register(Item)
 admin.site.register(Group)
