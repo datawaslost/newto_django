@@ -8,7 +8,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 
 class Profile(models.Model):
-	user = models.OneToOneField(User, on_delete=models.CASCADE)
+	user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
 	hometown = models.CharField(max_length=30, blank=True)
 	joined = models.DateField(auto_now_add=True)
 	last_change = models.DateField(auto_now=True)
