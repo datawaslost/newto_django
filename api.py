@@ -1,13 +1,13 @@
-from . import models
 from django.contrib.auth.models import User
 from rest_framework import serializers, viewsets
+from . import models
 
 
 # Serializers define the API representation.
 class UserSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
 		model = User
-		fields = ('url', 'username', 'email', 'is_staff')
+		fields = ('url', 'username', 'email', 'is_staff', 'id')
 
 
 # ViewSets define the view behavior.
@@ -16,10 +16,11 @@ class UserViewSet(viewsets.ModelViewSet):
 	serializer_class = UserSerializer
 
 
-class ProfileSerializer(serializers.HyperlinkedModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer):
+	email = serializers.ReadOnlyField(source='user.email')
 	class Meta:
 		model = models.Profile
-		fields = ('user', 'metro')
+		fields = ('email', 'id', 'user', 'metro', 'organization')
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -27,10 +28,10 @@ class ProfileViewSet(viewsets.ModelViewSet):
 	serializer_class = ProfileSerializer
 
 
-class MetroSerializer(serializers.HyperlinkedModelSerializer):
+class MetroSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.Metro
-		fields = ('name', 'public')
+		fields = ('name', 'public', 'id')
 
 
 class MetroViewSet(viewsets.ModelViewSet):
