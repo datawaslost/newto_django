@@ -11,6 +11,7 @@ from . import api
 router = routers.DefaultRouter()
 router.register(r'users', api.UserViewSet)
 router.register(r'profile', api.ProfileViewSet)
+router.register(r'metro', api.MetroViewSet)
 
 
 urlpatterns = [

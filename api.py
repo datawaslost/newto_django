@@ -25,3 +25,14 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
 class ProfileViewSet(viewsets.ModelViewSet):
 	queryset = models.Profile.objects.all()
 	serializer_class = ProfileSerializer
+
+
+class MetroSerializer(serializers.HyperlinkedModelSerializer):
+	class Meta:
+		model = models.Metro
+		fields = ('name', 'public')
+
+
+class MetroViewSet(viewsets.ModelViewSet):
+	queryset = models.Metro.objects.all()
+	serializer_class = MetroSerializer
