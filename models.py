@@ -99,7 +99,7 @@ class Place(Item):
 	# need more complex hours field, currently using openinghours
 	phone = PhoneNumberField(blank=True, verbose_name="Phone Number")
 	featured = models.BooleanField(default=False, help_text="Does this place show up as featured in search results?")
-	category = models.ForeignKey('Category', on_delete=models.SET_NULL, blank=True, null=True, help_text="Category that this place appears under in search results")
+	category = models.ManyToManyField('Category', blank=True, null=True, help_text="Categories that this place appears under in search results")
 	tags = models.ManyToManyField('Tag', blank=True)
 	ratings = models.ManyToManyField('Profile', through='Rating', blank=True)
 
