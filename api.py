@@ -16,18 +16,6 @@ class UserViewSet(viewsets.ModelViewSet):
 	serializer_class = UserSerializer
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-	email = serializers.ReadOnlyField(source='user.email')
-	class Meta:
-		model = models.Profile
-		fields = ('email', 'id', 'user', 'metro', 'organization')
-
-
-class ProfileViewSet(viewsets.ModelViewSet):
-	queryset = models.Profile.objects.all()
-	serializer_class = ProfileSerializer
-
-
 class MetroSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.Metro
@@ -37,3 +25,29 @@ class MetroSerializer(serializers.ModelSerializer):
 class MetroViewSet(viewsets.ModelViewSet):
 	queryset = models.Metro.objects.all()
 	serializer_class = MetroSerializer
+
+
+class OrganizationSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = models.Organization
+		fields = ('name', 'id', 'metro')
+
+
+class OrganizationViewSet(viewsets.ModelViewSet):
+	queryset = models.Organization.objects.all()
+	serializer_class = OrganizationSerializer
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+	# email = serializers.ReadOnlyField(source='user.email')
+	user = UserSerializer()
+	metro = MetroSerializer()
+	organization = OrganizationSerializer()
+	class Meta:
+		model = models.Profile
+		fields = ('user', 'id', 'metro', 'organization')
+
+
+class ProfileViewSet(viewsets.ModelViewSet):
+	queryset = models.Profile.objects.all()
+	serializer_class = ProfileSerializer
