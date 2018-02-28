@@ -141,7 +141,7 @@ class Rating(models.Model):
 class Todo(models.Model):
 	profile = models.ForeignKey('Profile', related_name='todo_profile', on_delete=models.CASCADE)
 	item = models.ForeignKey('Item', related_name='todo_item', on_delete=models.CASCADE)
-	order = models.IntegerField()
+	order = models.IntegerField() # required?
 	done = models.BooleanField(default=False)
 	# need to add unique constraints to prevent duplicate items?
 	
@@ -160,7 +160,7 @@ class Discover(models.Model):
 	metro = models.ForeignKey('Metro', related_name='discover_metro', on_delete=models.CASCADE, blank=True, null=True)
 	organization = models.ForeignKey('Organization', related_name='discover_organization', on_delete=models.CASCADE, blank=True, null=True)
 	item = models.ForeignKey('Item', related_name='discover_item', on_delete=models.CASCADE)
-	order = models.IntegerField()
+	order = models.IntegerField() # required?
 	
 	class Meta:
 		verbose_name = "discover item"
@@ -170,7 +170,7 @@ class Default(models.Model):
 	metro = models.ForeignKey('Metro', related_name='default_metro', on_delete=models.CASCADE, blank=True, null=True)
 	organization = models.ForeignKey('Organization', related_name='default_organization', on_delete=models.CASCADE, blank=True, null=True)
 	item = models.ForeignKey('Item', related_name='default_item', on_delete=models.CASCADE)
-	order = models.IntegerField()
+	order = models.IntegerField() # required?
 	
 	class Meta:
 		verbose_name = "default item"

@@ -16,10 +16,37 @@ class UserViewSet(viewsets.ModelViewSet):
 	serializer_class = UserSerializer
 
 
+class TipSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = models.Tip
+		fields = ("name", "content")
+
+
+class CtaSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = models.Cta
+		exclude = ('id',)
+
+
+class ItemSerializer(serializers.ModelSerializer):
+	ctas = CtaSerializer(many=True)
+	class Meta:
+		model = models.Item
+		exclude = ('next',)
+
+
+class ItemViewSet(viewsets.ModelViewSet):
+	queryset = models.Item.objects.all()
+	serializer_class = ItemSerializer
+
+
 class MetroSerializer(serializers.ModelSerializer):
+	tips = TipSerializer(many=True)
+	default_items = ItemSerializer(many=True)
+	discover_items = ItemSerializer(many=True)
 	class Meta:
 		model = models.Metro
-		fields = ('name', 'public', 'id', 'url')
+		fields = ('name', 'public', 'id', 'url', 'default_items', 'discover_items', 'tips')
 
 
 class MetroViewSet(viewsets.ModelViewSet):
@@ -28,9 +55,12 @@ class MetroViewSet(viewsets.ModelViewSet):
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
+	tips = TipSerializer(many=True)
+	default_items = ItemSerializer(many=True)
+	discover_items = ItemSerializer(many=True)
 	class Meta:
 		model = models.Organization
-		fields = ('name', 'metro', 'id', 'url')
+		fields = ('name', 'metro', 'id', 'url', 'default_items', 'discover_items', 'tips')
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
@@ -66,25 +96,4 @@ class PlaceViewSet(viewsets.ModelViewSet):
 	serializer_class = PlaceSerializer
 
 
-class CtaSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = models.Cta
-		exclude = ('id',)
-
-
-class CtaViewSet(viewsets.ModelViewSet):
-	queryset = models.Cta.objects.all()
-	serializer_class = CtaSerializer
-
-
-class ItemSerializer(serializers.ModelSerializer):
-	ctas = CtaSerializer(many=True)
-	class Meta:
-		model = models.Item
-		exclude = ('next',)
-
-
-class ItemViewSet(viewsets.ModelViewSet):
-	queryset = models.Item.objects.all()
-	serializer_class = ItemSerializer
-
+# Group Serializer?
