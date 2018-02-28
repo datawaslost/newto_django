@@ -51,3 +51,14 @@ class ProfileSerializer(serializers.ModelSerializer):
 class ProfileViewSet(viewsets.ModelViewSet):
 	queryset = models.Profile.objects.all()
 	serializer_class = ProfileSerializer
+
+
+class PlaceSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = models.Place
+		exclude = ('next', 'ctas', 'ratings', 'metro')
+
+
+class PlaceViewSet(viewsets.ModelViewSet):
+	queryset = models.Place.objects.all()
+	serializer_class = PlaceSerializer

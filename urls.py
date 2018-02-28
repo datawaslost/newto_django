@@ -13,6 +13,7 @@ router.register(r'users', api.UserViewSet)
 router.register(r'profile', api.ProfileViewSet)
 router.register(r'metro', api.MetroViewSet)
 router.register(r'organization', api.OrganizationViewSet)
+router.register(r'place', api.PlaceViewSet)
 
 
 urlpatterns = [

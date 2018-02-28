@@ -42,7 +42,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 @admin.register(Place)
 class PlaceAdmin(admin.ModelAdmin):
-	exclude = ('next',)
+	exclude = ('next', 'ctas')
 	list_display = ('name', 'metros', 'categories', 'featured')
 	list_filter = ('metro', 'category')
 	
