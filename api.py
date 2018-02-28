@@ -58,9 +58,33 @@ class PlaceSerializer(serializers.ModelSerializer):
 	tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
 	class Meta:
 		model = models.Place
-		exclude = ('next', 'ctas', 'ratings', 'metro', 'id', 'url')
+		exclude = ('next', 'ctas', 'ratings', 'metro')
 
 
 class PlaceViewSet(viewsets.ModelViewSet):
 	queryset = models.Place.objects.all()
 	serializer_class = PlaceSerializer
+
+
+class CtaSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = models.Cta
+		exclude = ('id',)
+
+
+class CtaViewSet(viewsets.ModelViewSet):
+	queryset = models.Cta.objects.all()
+	serializer_class = CtaSerializer
+
+
+class ItemSerializer(serializers.ModelSerializer):
+	ctas = CtaSerializer(many=True)
+	class Meta:
+		model = models.Item
+		exclude = ('next',)
+
+
+class ItemViewSet(viewsets.ModelViewSet):
+	queryset = models.Item.objects.all()
+	serializer_class = ItemSerializer
+

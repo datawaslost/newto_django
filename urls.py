@@ -14,6 +14,7 @@ router.register(r'profile', api.ProfileViewSet)
 router.register(r'metro', api.MetroViewSet)
 router.register(r'organization', api.OrganizationViewSet)
 router.register(r'place', api.PlaceViewSet)
+router.register(r'item', api.ItemViewSet)
 
 
 urlpatterns = [
