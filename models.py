@@ -79,7 +79,7 @@ class Item(models.Model):
 	image = models.ImageField(blank=True)
 	# use thumbnail field for image?
 	ctas = models.ManyToManyField('Cta', blank=True, help_text="Call To Action Buttons to be displayed.")
-	next = models.ManyToManyField('Item', related_name='next_items', symmetrical=False, blank=True, help_text="Items to be added to User's list when this item is completed.")
+	next = models.ManyToManyField('Item', related_name='next_items', symmetrical=False, blank=True, limit_choices_to={'place': None}, help_text="Items to be added to User's list when this item is completed.")
 
 	def __str__(self):
 		return self.name
