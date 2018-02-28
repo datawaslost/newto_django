@@ -7,7 +7,7 @@ from . import models
 class UserSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
 		model = User
-		fields = ('url', 'username', 'email', 'is_staff', 'id')
+		fields = ('username', 'email', 'is_staff', 'id', 'url')
 
 
 # ViewSets define the view behavior.
@@ -19,7 +19,7 @@ class UserViewSet(viewsets.ModelViewSet):
 class MetroSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.Metro
-		fields = ('name', 'public', 'id')
+		fields = ('name', 'public', 'id', 'url')
 
 
 class MetroViewSet(viewsets.ModelViewSet):
@@ -30,7 +30,7 @@ class MetroViewSet(viewsets.ModelViewSet):
 class OrganizationSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.Organization
-		fields = ('name', 'id', 'metro')
+		fields = ('name', 'metro', 'id', 'url')
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
@@ -45,7 +45,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 	organization = OrganizationSerializer()
 	class Meta:
 		model = models.Profile
-		fields = ('user', 'id', 'metro', 'organization')
+		fields = ('user', 'metro', 'organization', 'id', 'url')
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -54,9 +54,11 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
 
 class PlaceSerializer(serializers.ModelSerializer):
+	category = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
+	tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
 	class Meta:
 		model = models.Place
-		exclude = ('next', 'ctas', 'ratings', 'metro')
+		exclude = ('next', 'ctas', 'ratings', 'metro', 'id', 'url')
 
 
 class PlaceViewSet(viewsets.ModelViewSet):
