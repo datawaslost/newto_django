@@ -19,24 +19,32 @@ class TipInline(admin.TabularInline):
 	extra = 1
 	verbose_name = "tip"
 
-    
+
+@admin.register(Metro)
 class MetroAdmin(admin.ModelAdmin):
 	exclude = ('tips',)
 	inlines = (DiscoverInline, DefaultInline, TipInline)
 
 
+@admin.register(Place)
 class PlaceAdmin(admin.ModelAdmin):
 	exclude = ('next',)
+	list_display = ('name', 'metro', 'category', 'featured')
+    list_filter = ('metro', 'category')
 
 
-admin.site.register(Metro, MetroAdmin)
-admin.site.register(Place, PlaceAdmin)
+@admin.register(Item)
+class ItemAdmin(admin.ModelAdmin):
+	def queryset(self, request):
+		qs = super(ItemAdmin, self).queryset(request)
+		qs.filter(place=None)
+		return qs
+
 
 admin.site.register(Profile)
 admin.site.register(ProspectiveUser)
 admin.site.register(Organization)
 admin.site.register(Tip)
-admin.site.register(Item)
 admin.site.register(Group)
 admin.site.register(Category)
 admin.site.register(Tag)
