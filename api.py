@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
-from rest_framework import serializers, viewsets
+from rest_framework import serializers, viewsets, generics
 from . import models
+
 
 
 # Serializers define the API representation.
@@ -100,9 +101,28 @@ class GroupSerializer(serializers.ModelSerializer):
 	items = ItemSerializer(many=True)
 	class Meta:
 		model = models.Group
-		exclude = ('next', 'ctas',)
+		exclude = ('next', 'ctas', 'link')
 
 
 class GroupViewSet(viewsets.ModelViewSet):
 	queryset = models.Group.objects.all()
 	serializer_class = GroupSerializer
+
+
+class MeSerializer(serializers.ModelSerializer):
+	# email = serializers.ReadOnlyField(source='user.email')
+	user = UserSerializer()
+	metro = MetroSerializer()
+	organization = OrganizationSerializer()
+	todo = ItemSerializer(many=True)
+	bookmarks = ItemSerializer(many=True)
+	class Meta:
+		model = models.Profile
+		fields = ('user', 'metro', 'organization', 'id', 'url', 'todo', 'bookmarks')
+
+
+class MeViewSet(viewsets.ModelViewSet):
+	def get_queryset(self):
+		return models.Profile.objects.filter(user=self.request.user)
+	serializer_class = MeSerializer
+

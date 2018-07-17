@@ -16,6 +16,7 @@ router.register(r'organization', api.OrganizationViewSet)
 router.register(r'place', api.PlaceViewSet)
 router.register(r'item', api.ItemViewSet)
 router.register(r'group', api.GroupViewSet)
+router.register(r'me', api.MeViewSet, base_name="me")
 
 
 urlpatterns = [
