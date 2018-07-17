@@ -96,4 +96,13 @@ class PlaceViewSet(viewsets.ModelViewSet):
 	serializer_class = PlaceSerializer
 
 
-# Group Serializer?
+class GroupSerializer(serializers.ModelSerializer):
+	items = ItemSerializer(many=True)
+	class Meta:
+		model = models.Group
+		exclude = ('next', 'ctas',)
+
+
+class GroupViewSet(viewsets.ModelViewSet):
+	queryset = models.Group.objects.all()
+	serializer_class = GroupSerializer
