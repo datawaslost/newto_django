@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
-from rest_framework import serializers, viewsets, generics
+from rest_framework import serializers, viewsets, generics, authentication, permissions
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from . import models
-
 
 
 # Serializers define the API representation.
@@ -110,7 +110,6 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 
 class MeSerializer(serializers.ModelSerializer):
-	# email = serializers.ReadOnlyField(source='user.email')
 	user = UserSerializer()
 	metro = MetroSerializer()
 	organization = OrganizationSerializer()
@@ -122,7 +121,11 @@ class MeSerializer(serializers.ModelSerializer):
 
 
 class MeViewSet(viewsets.ModelViewSet):
+	# authentication_classes = (JSONWebTokenAuthentication,)
+	permission_classes = (permissions.IsAuthenticated,)
+
 	def get_queryset(self):
-		return models.Profile.objects.filter(user=self.request.user)
+		return models.Profile.objects.filter(user=self.request.user.pk)
+		# return self.request.user
 	serializer_class = MeSerializer
 

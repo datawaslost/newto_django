@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url, include
 from rest_framework import routers
+from rest_framework_jwt.views import refresh_jwt_token, verify_jwt_token
+
 from . import views
 from . import models
 from . import api
@@ -23,5 +25,9 @@ urlpatterns = [
 	path('admin/', admin.site.urls),
 	path('', views.test, name='test'),
 	url(r'^api/', include(router.urls)),
-	url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+	url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+	url(r'^rest-auth/', include('rest_auth.urls')),
+    url(r'^rest-auth/registration/', include('rest_auth.registration.urls')),
+    url(r'^refresh-token/', refresh_jwt_token),
+    url(r'^token-verify/', verify_jwt_token),
 ]

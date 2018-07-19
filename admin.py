@@ -6,14 +6,14 @@ class DiscoverInline(admin.TabularInline):
 	model = Discover
 	extra = 1
 	ordering = ['order']
-	exclude = ("metro", "organization")
+	# exclude = ("metro", "organization")
 
 
 class DefaultInline(admin.TabularInline):
 	model = Default
 	extra = 1
 	ordering = ['order']
-	exclude = ("metro", "organization")
+	# exclude = ("metro", "organization")
 
 
 class MetroTipInline(admin.TabularInline):
