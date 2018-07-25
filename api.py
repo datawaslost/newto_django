@@ -1,8 +1,10 @@
 from django.contrib.auth.models import User
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import serializers, viewsets, generics, authentication, permissions
+from rest_framework.decorators import api_view
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from . import models
-
 
 # Serializers define the API representation.
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -128,4 +130,15 @@ class MeViewSet(viewsets.ModelViewSet):
 		return models.Profile.objects.filter(user=self.request.user.pk)
 		# return self.request.user
 	serializer_class = MeSerializer
+
+
+# @api_view(['GET', 'POST'])
+@csrf_exempt
+def emailCheck(request):
+	if request.method == 'POST' and request.POST.get('email', False):
+		if User.objects.filter(email=request.POST["email"]).exists():
+			return HttpResponse(status=200)
+		else:
+			return HttpResponse(status=404)
+	return HttpResponse(status=400)
 
