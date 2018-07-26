@@ -156,6 +156,7 @@ def onboarding(request):
 	# should this require rest-auth token authentication?
 	id = request.POST.get('id', False)
 	email = request.POST.get('email', False)
+	hometown = request.POST.get('hometown', False)
 	metro_id = request.POST.get('metro', False)
 	organization_id = request.POST.get('organization', False)
 	if request.method == 'POST' and email and id:
@@ -167,6 +168,8 @@ def onboarding(request):
 			elif metro_id:
 				profile.organization = None
 				profile.metro = models.Metro.objects.get(id=metro_id)
+			if hometown:
+				profile.hometown = hometown
 			profile.save()
 			# Here we should transfer data from the Org/Metro to the Profile
 			data = {
