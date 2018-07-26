@@ -1,10 +1,13 @@
+import json
 from django.contrib.auth.models import User
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.serializers import serialize
 from rest_framework import serializers, viewsets, generics, authentication, permissions
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view #, action
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from . import models
+
 
 # Serializers define the API representation.
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -119,20 +122,25 @@ class MeSerializer(serializers.ModelSerializer):
 	bookmarks = ItemSerializer(many=True)
 	class Meta:
 		model = models.Profile
-		fields = ('user', 'metro', 'organization', 'id', 'url', 'todo', 'bookmarks')
+		fields = ('user', 'metro', 'organization', 'id', 'url', 'todo', 'bookmarks', 'hometown')
 
 
 class MeViewSet(viewsets.ModelViewSet):
 	# authentication_classes = (JSONWebTokenAuthentication,)
 	permission_classes = (permissions.IsAuthenticated,)
+	serializer_class = MeSerializer
 
 	def get_queryset(self):
 		return models.Profile.objects.filter(user=self.request.user.pk)
-		# return self.request.user
-	serializer_class = MeSerializer
 
+	# @action(methods=['post', 'patch'], detail=True, permission_classes=[IsAdminOrIsSelf])
+	# def partial_update(self, serializer):
+	#	user_instance = serializer.instance
+	#	request = self.request
+	#	serializer.save(**modified_attrs)
+	#	return Response(status=status.HTTP_200_OK)
 
-# @api_view(['GET', 'POST'])
+	
 @csrf_exempt
 def emailCheck(request):
 	if request.method == 'POST' and request.POST.get('email', False):
@@ -140,5 +148,35 @@ def emailCheck(request):
 			return HttpResponse(status=200)
 		else:
 			return HttpResponse(status=404)
+	return HttpResponse(status=400)
+
+
+@csrf_exempt
+def onboarding(request):
+	# should this require rest-auth token authentication?
+	id = request.POST.get('id', False)
+	email = request.POST.get('email', False)
+	metro_id = request.POST.get('metro', False)
+	organization_id = request.POST.get('organization', False)
+	if request.method == 'POST' and email and id:
+		if User.objects.filter(email=email,id=id).exists():
+			profile = models.Profile.objects.get(user=id)
+			if organization_id:
+				profile.organization = models.Organization.objects.get(id=organization_id)
+				profile.metro = profile.organization.metro
+			elif metro_id:
+				profile.organization = None
+				profile.metro = models.Metro.objects.get(id=metro_id)
+			profile.save()
+			# Here we should transfer data from the Org/Metro to the Profile
+			data = {
+				'id': profile.user.id,
+			}
+			if profile.metro:
+				data["metro"] = profile.metro.id
+			if profile.organization:
+				data["organization"] = profile.organization.id
+			return JsonResponse(data)
+		return HttpResponse(status=404)
 	return HttpResponse(status=400)
 
