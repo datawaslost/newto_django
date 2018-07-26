@@ -174,6 +174,7 @@ def onboarding(request):
 			# Here we should transfer data from the Org/Metro to the Profile
 			data = {
 				'id': profile.user.id,
+				'hometown': profile.hometown,
 			}
 			if profile.metro:
 				data["metro"] = profile.metro.id
