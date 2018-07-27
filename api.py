@@ -144,10 +144,11 @@ class MeViewSet(viewsets.ModelViewSet):
 @csrf_exempt
 def emailCheck(request):
 	if request.method == 'POST' and request.POST.get('email', False):
-		if User.objects.filter(email=request.POST["email"]).exists():
-			return HttpResponse(status=200)
-		else:
-			return HttpResponse(status=404)
+		if not User.objects.filter(email=request.POST["email"]).exists():
+			if models.ProspectiveUser.objects.filter(email=request.POST["email"]).exists():
+				return JsonResponse({'exists': False, 'organization': models.ProspectiveUser.objects.get(email=request.POST["email"]).organization.id})
+			return JsonResponse({'exists': False})
+		return JsonResponse({'exists': True})
 	return HttpResponse(status=400)
 
 
