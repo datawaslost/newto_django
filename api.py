@@ -48,11 +48,10 @@ class ItemViewSet(viewsets.ModelViewSet):
 
 class MetroSerializer(serializers.ModelSerializer):
 	tips = TipSerializer(many=True)
-	default_items = ItemSerializer(many=True)
 	discover_items = ItemSerializer(many=True)
 	class Meta:
 		model = models.Metro
-		fields = ('name', 'public', 'id', 'url', 'default_items', 'discover_items', 'tips')
+		fields = ('name', 'public', 'id', 'url', 'discover_items', 'tips')
 
 
 class MetroViewSet(viewsets.ModelViewSet):
@@ -62,11 +61,10 @@ class MetroViewSet(viewsets.ModelViewSet):
 
 class OrganizationSerializer(serializers.ModelSerializer):
 	tips = TipSerializer(many=True)
-	default_items = ItemSerializer(many=True)
 	discover_items = ItemSerializer(many=True)
 	class Meta:
 		model = models.Organization
-		fields = ('name', 'metro', 'id', 'url', 'default_items', 'discover_items', 'tips')
+		fields = ('name', 'metro', 'id', 'url', 'discover_items', 'tips')
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
@@ -79,9 +77,10 @@ class ProfileSerializer(serializers.ModelSerializer):
 	user = UserSerializer()
 	metro = MetroSerializer()
 	organization = OrganizationSerializer()
+	todo = ItemSerializer(many=True)
 	class Meta:
 		model = models.Profile
-		fields = ('user', 'metro', 'organization', 'id', 'url')
+		fields = ('user', 'metro', 'organization', 'id', 'url', 'todo')
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -133,13 +132,6 @@ class MeViewSet(viewsets.ModelViewSet):
 	def get_queryset(self):
 		return models.Profile.objects.filter(user=self.request.user.pk)
 
-	# @action(methods=['post', 'patch'], detail=True, permission_classes=[IsAdminOrIsSelf])
-	# def partial_update(self, serializer):
-	#	user_instance = serializer.instance
-	#	request = self.request
-	#	serializer.save(**modified_attrs)
-	#	return Response(status=status.HTTP_200_OK)
-
 	
 @csrf_exempt
 def emailCheck(request):
@@ -171,8 +163,18 @@ def onboarding(request):
 				profile.metro = models.Metro.objects.get(id=metro_id)
 			if hometown:
 				profile.hometown = hometown
+			# clear old stuff
+			profile.todo.clear()
+			# add default items from organization and metro
+			if profile.organization:
+				for item in profile.organization.default_items.all():
+					new_todo_item = models.Todo(profile=profile, item=item, order=models.Default.objects.get(organization=profile.organization, item=item).order)
+					new_todo_item.save()
+			if profile.metro:
+				for item in profile.metro.default_items.all():
+					new_todo_item = models.Todo(profile=profile, item=item, order=models.Default.objects.get(metro=profile.metro, item=item).order)
+					new_todo_item.save()
 			profile.save()
-			# Here we should transfer data from the Org/Metro to the Profile
 			data = {
 				'id': profile.user.id,
 				'hometown': profile.hometown,
