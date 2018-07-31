@@ -48,6 +48,8 @@ class Organization(models.Model):
 	default_items = models.ManyToManyField('Item', through='Default', related_name='organization_default_items', blank=True, help_text="Default Items for new user.")
 	discover_items = models.ManyToManyField('Item', through='Discover', related_name='organization_discover_items', blank=True, help_text="Items to show under 'Discover'.")
 	tips = models.ManyToManyField('Tip', blank=True, help_text="Tips to display")
+	nav_image = models.ImageField(blank=True)
+	nav_name = models.CharField(max_length=128, blank=True)
 	
 	def __str__(self):
 		return self.name
