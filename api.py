@@ -88,8 +88,12 @@ class BookmarkSerializer(serializers.ModelSerializer):
 
 
 class ItemSerializer(serializers.ModelSerializer):
-	ctas = CtaSerializer(many=True)
 	image = serializers.SerializerMethodField()
+	article = serializers.SerializerMethodField()
+	
+	def get_article(self, instance):
+		# returning image url if there is an image else null
+		return True if instance.content != "" and instance.content != None else False
 	
 	def get_image(self, instance):
 		# returning image url if there is an image else blank string
@@ -97,12 +101,30 @@ class ItemSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Item
-		exclude = ('next',)
+		exclude = ('next', 'content', 'link', 'ctas', 'public')
+
+
+class FullItemSerializer(serializers.ModelSerializer):
+	ctas = CtaSerializer(many=True)
+	image = serializers.SerializerMethodField()
+	article = serializers.SerializerMethodField()
+	
+	def get_article(self, instance):
+		# returning image url if there is an image else null
+		return instance.content if instance.content != "" and instance.content != None else None
+	
+	def get_image(self, instance):
+		# returning image url if there is an image else blank string
+		return instance.image.url if instance.image else None
+
+	class Meta:
+		model = models.Item
+		exclude = ('next', 'public',)
 
 
 class ItemViewSet(viewsets.ModelViewSet):
 	queryset = models.Item.objects.all()
-	serializer_class = ItemSerializer
+	serializer_class = FullItemSerializer
 
 
 class MetroSerializer(serializers.ModelSerializer):
@@ -169,6 +191,12 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
 class GroupSerializer(serializers.ModelSerializer):
 	items = ItemSerializer(many=True)
+	image = serializers.SerializerMethodField()
+	
+	def get_image(self, instance):
+		# returning image url if there is an image else blank string
+		return instance.image.url if instance.image else None
+	
 	class Meta:
 		model = models.Group
 		exclude = ('next', 'ctas', 'link')
