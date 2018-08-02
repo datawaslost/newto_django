@@ -24,6 +24,12 @@ class DefaultInline(admin.TabularInline):
 	# exclude = ("metro", "organization")
 
 
+class TodoInline(admin.TabularInline):
+	model = Todo
+	extra = 1
+	ordering = ['order']
+
+
 class MetroTipInline(admin.TabularInline):
 	model = Metro.tips.through
 	extra = 1
@@ -79,7 +85,7 @@ class ProspectiveUserAdmin(admin.ModelAdmin):
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
 	list_display = ('user', 'metro', 'organization', 'joined', 'last_change')
-	inlines = (BookmarkInline,)
+	inlines = (BookmarkInline, TodoInline)
 
 
 @admin.register(Tip)
