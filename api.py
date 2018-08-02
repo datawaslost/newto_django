@@ -93,7 +93,7 @@ class ItemSerializer(serializers.ModelSerializer):
 	
 	def get_image(self, instance):
 		# returning image url if there is an image else blank string
-		return instance.image.url if instance.image else ''
+		return instance.image.url if instance.image else None
 
 	class Meta:
 		model = models.Item
@@ -120,9 +120,17 @@ class MetroViewSet(viewsets.ModelViewSet):
 class OrganizationSerializer(serializers.ModelSerializer):
 	# tips = TipSerializer(many=True)
 	discover_items = ItemSerializer(many=True)
+	popular = serializers.SerializerMethodField()
+		
+	def get_popular(self, container):
+		# this needs to be a more complex algorithm for determiing popularity
+		items = models.Item.objects.all().order_by('-id')[:10]
+		serializer = ItemSerializer(instance=items, many=True)
+		return serializer.data
+
 	class Meta:
 		model = models.Organization
-		fields = ('name', 'metro', 'id', 'discover_items', 'nav_name', 'nav_image')
+		fields = ('name', 'metro', 'id', 'discover_items', 'popular', 'nav_name', 'nav_image')
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
