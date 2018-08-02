@@ -42,6 +42,7 @@ class BookmarkSerializer(serializers.ModelSerializer):
 	group = serializers.SerializerMethodField()
 	rating = serializers.SerializerMethodField()
 	distance = serializers.SerializerMethodField()
+	items = serializers.SerializerMethodField()
 
 	def get_image(self, instance):
 		# returning image url if there is an image else null
@@ -68,6 +69,10 @@ class BookmarkSerializer(serializers.ModelSerializer):
 	def get_distance(self, instance):
 		# connect this to a distance calculation later
 		return 1.7
+
+	def get_items(self, instance):
+		# connect this to a group items calculation later
+		return 3
 
 	"""
 	def get_city(self, instance):
