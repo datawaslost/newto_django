@@ -19,7 +19,6 @@ router.register(r'place', api.PlaceViewSet)
 router.register(r'item', api.ItemViewSet)
 router.register(r'group', api.GroupViewSet)
 router.register(r'me', api.MeViewSet, base_name="me")
-# router.register(r'emailcheck', api.emailCheck, base_name="emailcheck")
 
 
 urlpatterns = [

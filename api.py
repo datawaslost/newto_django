@@ -1,24 +1,24 @@
 import json
+
 from django.contrib.auth.models import User
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
+from django.db import models as db_models
+
 from rest_framework import serializers, viewsets, generics, authentication, permissions
 from rest_framework.decorators import api_view #, action
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+
 from . import models
 
-from django.db import models as db_models
 
-
-# Serializers define the API representation.
 class UserSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
 		model = User
 		fields = ('email', 'is_staff', 'id')
 
 
-# ViewSets define the view behavior.
 class UserViewSet(viewsets.ModelViewSet):
 	queryset = User.objects.all()
 	serializer_class = UserSerializer
@@ -40,6 +40,8 @@ class BookmarkSerializer(serializers.ModelSerializer):
 	image = serializers.SerializerMethodField()
 	place = serializers.SerializerMethodField()
 	group = serializers.SerializerMethodField()
+	rating = serializers.SerializerMethodField()
+	distance = serializers.SerializerMethodField()
 
 	def get_image(self, instance):
 		# returning image url if there is an image else null
@@ -58,6 +60,14 @@ class BookmarkSerializer(serializers.ModelSerializer):
 			return True
 		except:
 			return False
+
+	def get_rating(self, instance):
+		# connect this to an average of ratings later
+		return 3.0
+
+	def get_distance(self, instance):
+		# connect this to a distance calculation later
+		return 1.7
 
 	"""
 	def get_city(self, instance):
