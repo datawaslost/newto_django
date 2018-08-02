@@ -15,7 +15,7 @@ from django.db import models as db_models
 class UserSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
 		model = User
-		fields = ('username', 'email', 'is_staff', 'id')
+		fields = ('email', 'is_staff', 'id')
 
 
 # ViewSets define the view behavior.
@@ -39,6 +39,11 @@ class CtaSerializer(serializers.ModelSerializer):
 class BookmarkSerializer(serializers.ModelSerializer):
 	image = serializers.SerializerMethodField()
 	place = serializers.SerializerMethodField()
+	group = serializers.SerializerMethodField()
+
+	def get_image(self, instance):
+		# returning image url if there is an image else null
+		return instance.image.url if instance.image else None
 
 	def get_place(self, instance):
 		try:
@@ -47,9 +52,12 @@ class BookmarkSerializer(serializers.ModelSerializer):
 		except:
 			return False
 
-	def get_image(self, instance):
-		# returning image url if there is an image else null
-		return instance.image.url if instance.image else None
+	def get_group(self, instance):
+		try:
+			place = getattr(instance, "group")
+			return True
+		except:
+			return False
 
 	"""
 	def get_city(self, instance):
@@ -61,7 +69,7 @@ class BookmarkSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Place
-		exclude = ('next', 'phone', 'metro', 'category', 'tags', 'ratings', 'address', 'city', 'state', 'ctas')
+		exclude = ('next', 'phone', 'metro', 'category', 'tags', 'ratings', 'address', 'city', 'state', 'ctas', 'content', 'public', 'link')
 
 
 class ItemSerializer(serializers.ModelSerializer):
