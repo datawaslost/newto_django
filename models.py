@@ -35,6 +35,7 @@ class Metro(models.Model):
 	public = models.BooleanField(default=True)
 	default_items = models.ManyToManyField('Item', through='Default', related_name='metro_default_items', blank=True, help_text="Default Items for new user.")
 	discover_items = models.ManyToManyField('Item', through='Discover', related_name='metro_discover_items', blank=True, help_text="Items to show under 'Discover'.")
+	# featured_places = models.ManyToManyField('Place', through='Featured', related_name='organization_featured_places', blank=True, help_text="Places to show under 'Featured'.")
 	tips = models.ManyToManyField('Tip', blank=True, help_text="Tips to display")
 	
 	def __str__(self):
@@ -47,6 +48,7 @@ class Organization(models.Model):
 	public = models.BooleanField(default=True)
 	default_items = models.ManyToManyField('Item', through='Default', related_name='organization_default_items', blank=True, help_text="Default Items for new user.")
 	discover_items = models.ManyToManyField('Item', through='Discover', related_name='organization_discover_items', blank=True, help_text="Items to show under 'Discover'.")
+	# featured_places = models.ManyToManyField('Place', through='Featured', related_name='organization_featured_places', blank=True, help_text="Places to show under 'Featured'.")
 	tips = models.ManyToManyField('Tip', blank=True, help_text="Tips to display")
 	nav_image = models.ImageField(blank=True)
 	nav_name = models.CharField(max_length=128, blank=True)

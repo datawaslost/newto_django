@@ -8,12 +8,14 @@ from rest_framework.decorators import api_view #, action
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from . import models
 
+from django.db import models as db_models
+
 
 # Serializers define the API representation.
 class UserSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
 		model = User
-		fields = ('username', 'email', 'is_staff', 'id', 'url')
+		fields = ('username', 'email', 'is_staff', 'id')
 
 
 # ViewSets define the view behavior.
@@ -34,8 +36,42 @@ class CtaSerializer(serializers.ModelSerializer):
 		exclude = ('id',)
 
 
+class BookmarkSerializer(serializers.ModelSerializer):
+	image = serializers.SerializerMethodField()
+	place = serializers.SerializerMethodField()
+
+	def get_place(self, instance):
+		try:
+			place = getattr(instance, "place")
+			return True
+		except:
+			return False
+
+	def get_image(self, instance):
+		# returning image url if there is an image else null
+		return instance.image.url if instance.image else None
+
+	"""
+	def get_city(self, instance):
+		try:
+			return type(instance)._meta.get_field('city')
+		except db_models.FieldDoesNotExist:
+			return None
+	"""
+
+	class Meta:
+		model = models.Place
+		exclude = ('next', 'phone', 'metro', 'category', 'tags', 'ratings', 'address', 'city', 'state', 'ctas')
+
+
 class ItemSerializer(serializers.ModelSerializer):
 	ctas = CtaSerializer(many=True)
+	image = serializers.SerializerMethodField()
+	
+	def get_image(self, instance):
+		# returning image url if there is an image else blank string
+		return instance.image.url if instance.image else ''
+
 	class Meta:
 		model = models.Item
 		exclude = ('next',)
@@ -47,11 +83,10 @@ class ItemViewSet(viewsets.ModelViewSet):
 
 
 class MetroSerializer(serializers.ModelSerializer):
-	tips = TipSerializer(many=True)
 	discover_items = ItemSerializer(many=True)
 	class Meta:
 		model = models.Metro
-		fields = ('name', 'public', 'id', 'url', 'discover_items', 'tips')
+		fields = ('name', 'public', 'id', 'discover_items')
 
 
 class MetroViewSet(viewsets.ModelViewSet):
@@ -60,11 +95,11 @@ class MetroViewSet(viewsets.ModelViewSet):
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
-	tips = TipSerializer(many=True)
+	# tips = TipSerializer(many=True)
 	discover_items = ItemSerializer(many=True)
 	class Meta:
 		model = models.Organization
-		fields = ('name', 'metro', 'id', 'url', 'discover_items', 'tips')
+		fields = ('name', 'metro', 'id', 'discover_items', 'nav_name', 'nav_image')
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
@@ -118,10 +153,10 @@ class MeSerializer(serializers.ModelSerializer):
 	metro = MetroSerializer()
 	organization = OrganizationSerializer()
 	todo = ItemSerializer(many=True)
-	bookmarks = ItemSerializer(many=True)
+	bookmarks = BookmarkSerializer(many=True)
 	class Meta:
 		model = models.Profile
-		fields = ('user', 'metro', 'organization', 'id', 'url', 'todo', 'bookmarks', 'hometown')
+		fields = ('user', 'metro', 'organization', 'id', 'todo', 'bookmarks', 'hometown')
 
 
 class MeViewSet(viewsets.ModelViewSet):

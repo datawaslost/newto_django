@@ -2,6 +2,14 @@ from django.contrib import admin
 from .models import *
 
 
+class BookmarkInline(admin.TabularInline):
+	model = Bookmark
+	extra = 1
+	verbose_name = "bookmark"
+	# ordering = ['order']
+	# exclude = ("metro", "organization")
+
+
 class DiscoverInline(admin.TabularInline):
 	model = Discover
 	extra = 1
@@ -71,6 +79,7 @@ class ProspectiveUserAdmin(admin.ModelAdmin):
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
 	list_display = ('user', 'metro', 'organization', 'joined', 'last_change')
+	inlines = (BookmarkInline,)
 
 
 @admin.register(Tip)
