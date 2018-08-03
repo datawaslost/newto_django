@@ -12,7 +12,6 @@ class Profile(models.Model):
 	hometown = models.CharField(max_length=30, blank=True, help_text="Where the user came from.")
 	joined = models.DateField(auto_now_add=True, help_text="Date the user joined.")
 	last_change = models.DateField(auto_now=True, help_text="Date the user data was last changed.")
-	# metro = models.ForeignKey('Metro', related_name='profile_metro', on_delete=models.SET_NULL, blank=True, null=True)
 	organization = models.ForeignKey('Organization', related_name='profile_organization', on_delete=models.SET_NULL, blank=True, null=True)
 	todo = models.ManyToManyField('Item', through='Todo', related_name='profile_todo')
 	bookmarks = models.ManyToManyField('Item', through='Bookmark', related_name='profile_bookmarks')
@@ -32,12 +31,7 @@ def save_user_profile(sender, instance, **kwargs):
 
 class Metro(models.Model):
 	name = models.CharField(max_length=128, unique=True)
-	# public = models.BooleanField(default=True)
-	# default_items = models.ManyToManyField('Item', through='Default', related_name='metro_default_items', blank=True, help_text="Default Items for new user.")
-	# discover_items = models.ManyToManyField('Item', through='Discover', related_name='metro_discover_items', blank=True, help_text="Items to show under 'Discover'.")
-	# featured_places = models.ManyToManyField('Place', through='Featured', related_name='organization_featured_places', blank=True, help_text="Places to show under 'Featured'.")
-	# tips = models.ManyToManyField('Tip', blank=True, help_text="Tips to display")
-	
+
 	def __str__(self):
 		return self.name
 
@@ -48,11 +42,11 @@ class Organization(models.Model):
 	public = models.BooleanField(default=True)
 	default_items = models.ManyToManyField('Item', through='Default', related_name='organization_default_items', blank=True, help_text="Default Items for new user.")
 	discover_items = models.ManyToManyField('Item', through='Discover', related_name='organization_discover_items', blank=True, help_text="Items to show under 'Discover'.")
-	# featured_places = models.ManyToManyField('Place', through='Featured', related_name='organization_featured_places', blank=True, help_text="Places to show under 'Featured'.")
 	tips = models.ManyToManyField('Tip', blank=True, help_text="Tips to display")
 	nav_image = models.ImageField(blank=True)
 	nav_name = models.CharField(max_length=128, blank=True)
-	
+	categories = models.ManyToManyField('Category', through='OrgCategory', related_name='organization_categories', blank=True, help_text="Categories to show on the search screen.")
+
 	def __str__(self):
 		return self.name
 
@@ -80,8 +74,7 @@ class Item(models.Model):
 	public = models.BooleanField(default=False, help_text="Is this publicly shown?")
 	sponsor = models.CharField(max_length=128, blank=True, help_text="Name of sponsor, if sponsored.")
 	link = models.URLField(blank=True, help_text="Website URL")
-	image = models.ImageField(blank=True)
-	# use thumbnail field for image?
+	image = models.ImageField(blank=True) # use thumbnail field for image?
 	ctas = models.ManyToManyField('Cta', blank=True, help_text="Call To Action Buttons to be displayed.")
 	next = models.ManyToManyField('Item', related_name='next_items', symmetrical=False, blank=True, limit_choices_to={'place': None}, help_text="Items to be added to User's list when this item is completed.")
 
@@ -147,7 +140,7 @@ class Todo(models.Model):
 	item = models.ForeignKey('Item', related_name='todo_item', on_delete=models.CASCADE)
 	order = models.IntegerField() # required?
 	done = models.BooleanField(default=False)
-	# need to add unique constraints to prevent duplicate items?
+	# need to add unique constraints to prevent duplicate todo items?
 	
 	class Meta:
 		verbose_name = "todo item"
@@ -157,24 +150,32 @@ class Bookmark(models.Model):
 	profile = models.ForeignKey('Profile', related_name='bookmark_profile', on_delete=models.CASCADE)
 	item = models.ForeignKey('Item', related_name='bookmark_item', on_delete=models.CASCADE)
 	datetime = models.DateTimeField(auto_now_add=True)
-	# need to add unique constraints to prevent duplicate items?
+	# need to add unique constraints to prevent duplicate bookmarks?
 
 
 class Discover(models.Model):
-	# metro = models.ForeignKey('Metro', related_name='discover_metro', on_delete=models.CASCADE, blank=True, null=True)
 	organization = models.ForeignKey('Organization', related_name='discover_organization', on_delete=models.CASCADE, blank=True, null=True)
 	item = models.ForeignKey('Item', related_name='discover_item', on_delete=models.CASCADE)
-	order = models.IntegerField() # required?
+	order = models.IntegerField(blank=True, null=True)
 	
 	class Meta:
 		verbose_name = "discover item"
 
 
 class Default(models.Model):
-	# metro = models.ForeignKey('Metro', related_name='default_metro', on_delete=models.CASCADE, blank=True, null=True)
 	organization = models.ForeignKey('Organization', related_name='default_organization', on_delete=models.CASCADE, blank=True, null=True)
 	item = models.ForeignKey('Item', related_name='default_item', on_delete=models.CASCADE)
-	order = models.IntegerField() # required?
+	order = models.IntegerField(blank=True, null=True) # should this be required?
 	
 	class Meta:
 		verbose_name = "default item"
+
+
+class OrgCategory(models.Model):
+	organization = models.ForeignKey('Organization', related_name='category_organization', on_delete=models.CASCADE, blank=True, null=True)
+	category = models.ForeignKey('Category', related_name='organization_category', on_delete=models.CASCADE)
+	order = models.IntegerField(blank=True, null=True)
+	
+	class Meta:
+		verbose_name = "category"
+

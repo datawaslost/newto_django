@@ -36,6 +36,13 @@ class OrganizationTipInline(admin.TabularInline):
 	verbose_name = "tip"
 
 
+class CategoryInline(admin.TabularInline):
+	model = Organization.categories.through
+	extra = 1
+	verbose_name = "category"
+	ordering = ['order']
+
+
 @admin.register(Metro)
 class MetroAdmin(admin.ModelAdmin):
 	list_display = ('name',)
@@ -45,7 +52,7 @@ class MetroAdmin(admin.ModelAdmin):
 class OrganizationAdmin(admin.ModelAdmin):
 	exclude = ('tips',)
 	list_display = ('name', 'metro', 'public')
-	inlines = (DiscoverInline, DefaultInline, OrganizationTipInline)
+	inlines = (DiscoverInline, DefaultInline, OrganizationTipInline, CategoryInline)
 
 
 @admin.register(Place)

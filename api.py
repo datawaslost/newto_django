@@ -92,7 +92,7 @@ class ItemSerializer(serializers.ModelSerializer):
 	article = serializers.SerializerMethodField()
 	
 	def get_article(self, instance):
-		# returning image url if there is an image else null
+		# return true if it's an article with content
 		return True if instance.content != "" and instance.content != None else False
 	
 	def get_image(self, instance):
@@ -110,8 +110,8 @@ class FullItemSerializer(serializers.ModelSerializer):
 	article = serializers.SerializerMethodField()
 	
 	def get_article(self, instance):
-		# returning image url if there is an image else null
-		return instance.content if instance.content != "" and instance.content != None else None
+		# return true if it's an article with content
+		return instance.content if instance.content != "" and instance.content != None else False
 	
 	def get_image(self, instance):
 		# returning image url if there is an image else blank string
@@ -133,9 +133,23 @@ class MetroSerializer(serializers.ModelSerializer):
 		fields = ('name', 'id')
 
 
-class MetroViewSet(viewsets.ModelViewSet):
-	queryset = models.Metro.objects.all()
-	serializer_class = MetroSerializer
+class TagSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = models.Tag
+		fields = ('name', 'id')
+
+
+class CategorySerializer(serializers.ModelSerializer):
+	tags = TagSerializer(many=True)
+	image = serializers.SerializerMethodField()
+	
+	def get_image(self, instance):
+		# returning image url if there is an image else blank string
+		return instance.image.url if instance.image else None
+
+	class Meta:
+		model = models.Category
+		fields = ('name', 'id', 'image', 'tags')
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -143,6 +157,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 	discover_items = ItemSerializer(many=True)
 	popular = serializers.SerializerMethodField()
 	metro = MetroSerializer()
+	categories = CategorySerializer(many=True)
 
 	def get_popular(self, container):
 		# this needs to be a more complex algorithm for determiing popularity
@@ -152,7 +167,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Organization
-		fields = ('name', 'metro', 'id', 'discover_items', 'popular', 'nav_name', 'nav_image')
+		fields = ('name', 'metro', 'id', 'discover_items', 'popular', 'nav_name', 'nav_image', 'categories')
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
@@ -176,11 +191,27 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
 
 class PlaceSerializer(serializers.ModelSerializer):
-	category = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
-	tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
+	# category = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
+	# tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
+	image = serializers.SerializerMethodField()
+	rating = serializers.SerializerMethodField()
+	distance = serializers.SerializerMethodField()
+
+	def get_image(self, instance):
+		# returning image url if there is an image else null
+		return instance.image.url if instance.image else None
+
+	def get_rating(self, instance):
+		# connect this to an average of ratings later
+		return 3.0
+
+	def get_distance(self, instance):
+		# connect this to a distance calculation later
+		return 1.7
+	
 	class Meta:
 		model = models.Place
-		exclude = ('next', 'ctas', 'ratings', 'metro')
+		exclude = ('next', 'ctas', 'ratings', 'metro', 'category')
 
 
 class PlaceViewSet(viewsets.ModelViewSet):

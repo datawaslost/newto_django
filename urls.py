@@ -11,9 +11,8 @@ from . import api
 
 # Routers provide a way of automatically determining the URL conf.
 router = routers.DefaultRouter()
-router.register(r'users', api.UserViewSet)
+# router.register(r'users', api.UserViewSet)
 router.register(r'profile', api.ProfileViewSet)
-router.register(r'metro', api.MetroViewSet)
 router.register(r'organization', api.OrganizationViewSet)
 router.register(r'place', api.PlaceViewSet)
 router.register(r'item', api.ItemViewSet)
