@@ -211,7 +211,7 @@ class PlaceSerializer(serializers.ModelSerializer):
 	
 	class Meta:
 		model = models.Place
-		exclude = ('next', 'ctas', 'ratings', 'metro', 'category')
+		exclude = ('next', 'ctas', 'ratings', 'metro', 'category', 'tags')
 
 
 class PlaceViewSet(viewsets.ModelViewSet):
