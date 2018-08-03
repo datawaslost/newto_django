@@ -142,7 +142,8 @@ class OrganizationSerializer(serializers.ModelSerializer):
 	# tips = TipSerializer(many=True)
 	discover_items = ItemSerializer(many=True)
 	popular = serializers.SerializerMethodField()
-		
+	metro = MetroSerializer()
+
 	def get_popular(self, container):
 		# this needs to be a more complex algorithm for determiing popularity
 		items = models.Item.objects.all().order_by('-id')[:10]
