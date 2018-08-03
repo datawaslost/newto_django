@@ -30,12 +30,6 @@ class TodoInline(admin.TabularInline):
 	ordering = ['order']
 
 
-class MetroTipInline(admin.TabularInline):
-	model = Metro.tips.through
-	extra = 1
-	verbose_name = "tip"
-
-
 class OrganizationTipInline(admin.TabularInline):
 	model = Organization.tips.through
 	extra = 1
@@ -44,9 +38,7 @@ class OrganizationTipInline(admin.TabularInline):
 
 @admin.register(Metro)
 class MetroAdmin(admin.ModelAdmin):
-	exclude = ('tips',)
-	list_display = ('name', 'public')
-	inlines = (DiscoverInline, DefaultInline, MetroTipInline)
+	list_display = ('name',)
 
 
 @admin.register(Organization)
@@ -84,7 +76,7 @@ class ProspectiveUserAdmin(admin.ModelAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-	list_display = ('user', 'metro', 'organization', 'joined', 'last_change')
+	list_display = ('user', 'organization', 'joined', 'last_change')
 	inlines = (BookmarkInline, TodoInline)
 
 

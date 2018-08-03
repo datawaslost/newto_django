@@ -12,7 +12,7 @@ class Profile(models.Model):
 	hometown = models.CharField(max_length=30, blank=True, help_text="Where the user came from.")
 	joined = models.DateField(auto_now_add=True, help_text="Date the user joined.")
 	last_change = models.DateField(auto_now=True, help_text="Date the user data was last changed.")
-	metro = models.ForeignKey('Metro', related_name='profile_metro', on_delete=models.SET_NULL, blank=True, null=True)
+	# metro = models.ForeignKey('Metro', related_name='profile_metro', on_delete=models.SET_NULL, blank=True, null=True)
 	organization = models.ForeignKey('Organization', related_name='profile_organization', on_delete=models.SET_NULL, blank=True, null=True)
 	todo = models.ManyToManyField('Item', through='Todo', related_name='profile_todo')
 	bookmarks = models.ManyToManyField('Item', through='Bookmark', related_name='profile_bookmarks')
@@ -32,11 +32,11 @@ def save_user_profile(sender, instance, **kwargs):
 
 class Metro(models.Model):
 	name = models.CharField(max_length=128, unique=True)
-	public = models.BooleanField(default=True)
-	default_items = models.ManyToManyField('Item', through='Default', related_name='metro_default_items', blank=True, help_text="Default Items for new user.")
-	discover_items = models.ManyToManyField('Item', through='Discover', related_name='metro_discover_items', blank=True, help_text="Items to show under 'Discover'.")
+	# public = models.BooleanField(default=True)
+	# default_items = models.ManyToManyField('Item', through='Default', related_name='metro_default_items', blank=True, help_text="Default Items for new user.")
+	# discover_items = models.ManyToManyField('Item', through='Discover', related_name='metro_discover_items', blank=True, help_text="Items to show under 'Discover'.")
 	# featured_places = models.ManyToManyField('Place', through='Featured', related_name='organization_featured_places', blank=True, help_text="Places to show under 'Featured'.")
-	tips = models.ManyToManyField('Tip', blank=True, help_text="Tips to display")
+	# tips = models.ManyToManyField('Tip', blank=True, help_text="Tips to display")
 	
 	def __str__(self):
 		return self.name
@@ -44,7 +44,7 @@ class Metro(models.Model):
 
 class Organization(models.Model):
 	name = models.CharField(max_length=128, unique=True)
-	metro = models.ForeignKey('Metro', related_name='organization_metro', on_delete=models.SET_NULL, blank=True, null=True, help_text="The Metro Area this Organization is located in, to share items.")
+	metro = models.ForeignKey('Metro', related_name='organization_metro', on_delete=models.SET_DEFAULT, default=1, help_text="The Metro Area this Organization is located in, to share items.")
 	public = models.BooleanField(default=True)
 	default_items = models.ManyToManyField('Item', through='Default', related_name='organization_default_items', blank=True, help_text="Default Items for new user.")
 	discover_items = models.ManyToManyField('Item', through='Discover', related_name='organization_discover_items', blank=True, help_text="Items to show under 'Discover'.")
@@ -161,7 +161,7 @@ class Bookmark(models.Model):
 
 
 class Discover(models.Model):
-	metro = models.ForeignKey('Metro', related_name='discover_metro', on_delete=models.CASCADE, blank=True, null=True)
+	# metro = models.ForeignKey('Metro', related_name='discover_metro', on_delete=models.CASCADE, blank=True, null=True)
 	organization = models.ForeignKey('Organization', related_name='discover_organization', on_delete=models.CASCADE, blank=True, null=True)
 	item = models.ForeignKey('Item', related_name='discover_item', on_delete=models.CASCADE)
 	order = models.IntegerField() # required?
@@ -171,7 +171,7 @@ class Discover(models.Model):
 
 
 class Default(models.Model):
-	metro = models.ForeignKey('Metro', related_name='default_metro', on_delete=models.CASCADE, blank=True, null=True)
+	# metro = models.ForeignKey('Metro', related_name='default_metro', on_delete=models.CASCADE, blank=True, null=True)
 	organization = models.ForeignKey('Organization', related_name='default_organization', on_delete=models.CASCADE, blank=True, null=True)
 	item = models.ForeignKey('Item', related_name='default_item', on_delete=models.CASCADE)
 	order = models.IntegerField() # required?

@@ -128,10 +128,9 @@ class ItemViewSet(viewsets.ModelViewSet):
 
 
 class MetroSerializer(serializers.ModelSerializer):
-	discover_items = ItemSerializer(many=True)
 	class Meta:
 		model = models.Metro
-		fields = ('name', 'public', 'id', 'discover_items')
+		fields = ('name', 'id')
 
 
 class MetroViewSet(viewsets.ModelViewSet):
@@ -163,12 +162,11 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 class ProfileSerializer(serializers.ModelSerializer):
 	# email = serializers.ReadOnlyField(source='user.email')
 	user = UserSerializer()
-	metro = MetroSerializer()
 	organization = OrganizationSerializer()
 	todo = ItemSerializer(many=True)
 	class Meta:
 		model = models.Profile
-		fields = ('user', 'metro', 'organization', 'id', 'url', 'todo')
+		fields = ('user', 'organization', 'id', 'url', 'todo')
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -209,13 +207,12 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 class MeSerializer(serializers.ModelSerializer):
 	user = UserSerializer()
-	metro = MetroSerializer()
 	organization = OrganizationSerializer()
 	todo = ItemSerializer(many=True)
 	bookmarks = BookmarkSerializer(many=True)
 	class Meta:
 		model = models.Profile
-		fields = ('user', 'metro', 'organization', 'id', 'todo', 'bookmarks', 'hometown')
+		fields = ('user', 'organization', 'id', 'todo', 'bookmarks', 'hometown')
 
 
 class MeViewSet(viewsets.ModelViewSet):
@@ -244,37 +241,26 @@ def onboarding(request):
 	id = request.POST.get('id', False)
 	email = request.POST.get('email', False)
 	hometown = request.POST.get('hometown', False)
-	metro_id = request.POST.get('metro', False)
 	organization_id = request.POST.get('organization', False)
 	if request.method == 'POST' and email and id:
 		if User.objects.filter(email=email,id=id).exists():
 			profile = models.Profile.objects.get(user=id)
 			if organization_id:
 				profile.organization = models.Organization.objects.get(id=organization_id)
-				profile.metro = profile.organization.metro
-			elif metro_id:
-				profile.organization = None
-				profile.metro = models.Metro.objects.get(id=metro_id)
 			if hometown:
 				profile.hometown = hometown
 			# clear old stuff
 			profile.todo.clear()
-			# add default items from organization and metro
+			# add default items from organization
 			if profile.organization:
 				for item in profile.organization.default_items.all():
 					new_todo_item = models.Todo(profile=profile, item=item, order=models.Default.objects.get(organization=profile.organization, item=item).order)
-					new_todo_item.save()
-			if profile.metro:
-				for item in profile.metro.default_items.all():
-					new_todo_item = models.Todo(profile=profile, item=item, order=models.Default.objects.get(metro=profile.metro, item=item).order)
 					new_todo_item.save()
 			profile.save()
 			data = {
 				'id': profile.user.id,
 				'hometown': profile.hometown,
 			}
-			if profile.metro:
-				data["metro"] = profile.metro.id
 			if profile.organization:
 				data["organization"] = profile.organization.id
 			return JsonResponse(data)
