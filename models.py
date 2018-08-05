@@ -12,7 +12,7 @@ class Profile(models.Model):
 	hometown = models.CharField(max_length=30, blank=True, help_text="Where the user came from.")
 	joined = models.DateField(auto_now_add=True, help_text="Date the user joined.")
 	last_change = models.DateField(auto_now=True, help_text="Date the user data was last changed.")
-	organization = models.ForeignKey('Organization', related_name='profile_organization', on_delete=models.SET_NULL, blank=True, null=True)
+	organization = models.ForeignKey('Organization', related_name='profile_organization', on_delete=models.SET_NULL, blank=True, null=True, default=1)
 	todo = models.ManyToManyField('Item', through='Todo', related_name='profile_todo')
 	bookmarks = models.ManyToManyField('Item', through='Bookmark', related_name='profile_bookmarks')
 
