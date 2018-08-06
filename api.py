@@ -171,7 +171,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
-	queryset = models.Organization.objects.all()
+	queryset = models.Organization.objects.filter(public=True)
 	serializer_class = OrganizationSerializer
 
 
