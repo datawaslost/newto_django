@@ -170,9 +170,15 @@ class OrganizationSerializer(serializers.ModelSerializer):
 		fields = ('name', 'metro', 'id', 'discover_items', 'popular', 'nav_name', 'nav_image', 'categories')
 
 
+class SimpleOrganizationSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = models.Organization
+		fields = ('name', 'id')
+
+
 class OrganizationViewSet(viewsets.ModelViewSet):
 	queryset = models.Organization.objects.filter(public=True)
-	serializer_class = OrganizationSerializer
+	serializer_class = SimpleOrganizationSerializer
 
 
 class ProfileSerializer(serializers.ModelSerializer):
