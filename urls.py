@@ -11,13 +11,16 @@ from . import api
 
 # Routers provide a way of automatically determining the URL conf.
 router = routers.DefaultRouter()
-# router.register(r'users', api.UserViewSet)
-router.register(r'profile', api.ProfileViewSet)
+
+router.register(r'me', api.MeViewSet, base_name="me")
 router.register(r'organization', api.OrganizationViewSet)
+
+# these should likely be removed for production
+router.register(r'users', api.UserViewSet)
+router.register(r'profile', api.ProfileViewSet)
 router.register(r'place', api.PlaceViewSet)
 router.register(r'item', api.ItemViewSet)
 router.register(r'group', api.GroupViewSet)
-router.register(r'me', api.MeViewSet, base_name="me")
 
 
 urlpatterns = [
