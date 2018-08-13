@@ -112,6 +112,19 @@ class FullItemSerializer(serializers.ModelSerializer):
 	ctas = CtaSerializer(many=True)
 	image = serializers.SerializerMethodField()
 	article = serializers.SerializerMethodField()
+	bookmarked = serializers.SerializerMethodField()
+
+	def get_bookmarked(self, instance):
+		# return true if this item is bookmarked by the user
+		user = None
+		request = self.context.get("request")
+		if request and hasattr(request, "user"):
+			try:
+				profile = request.user.profile
+				return models.Bookmark.objects.filter(item=instance, profile=profile).exists()
+			except:
+				return False
+		return False
 	
 	def get_article(self, instance):
 		# return true if it's an article with content
@@ -212,6 +225,19 @@ class PlaceSerializer(serializers.ModelSerializer):
 	rating = serializers.SerializerMethodField()
 	distance = serializers.SerializerMethodField()
 	location = PointField(required=False)
+	bookmarked = serializers.SerializerMethodField()
+
+	def get_bookmarked(self, instance):
+		# return true if this item is bookmarked by the user
+		user = None
+		request = self.context.get("request")
+		if request and hasattr(request, "user"):
+			try:
+				profile = request.user.profile
+				return models.Bookmark.objects.filter(item=instance, profile=profile).exists()
+			except:
+				return False
+		return False
 
 	def get_image(self, instance):
 		# returning image url if there is an image else null
@@ -238,7 +264,20 @@ class PlaceViewSet(viewsets.ModelViewSet):
 class GroupSerializer(serializers.ModelSerializer):
 	items = ItemSerializer(many=True)
 	image = serializers.SerializerMethodField()
-	
+	bookmarked = serializers.SerializerMethodField()
+
+	def get_bookmarked(self, instance):
+		# return true if this item is bookmarked by the user
+		user = None
+		request = self.context.get("request")
+		if request and hasattr(request, "user"):
+			try:
+				profile = request.user.profile
+				return models.Bookmark.objects.filter(item=instance, profile=profile).exists()
+			except:
+				return False
+		return False
+
 	def get_image(self, instance):
 		# returning image url if there is an image else blank string
 		return instance.image.url if instance.image else None
