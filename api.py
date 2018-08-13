@@ -101,7 +101,7 @@ class ItemSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Item
-		exclude = ('next', 'content', 'link', 'ctas', 'public')
+		exclude = ('next', 'content', 'link', 'ctas', 'public', 'url',)
 
 
 class FullItemSerializer(serializers.ModelSerializer):
