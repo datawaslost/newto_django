@@ -10,6 +10,8 @@ from rest_framework import serializers, viewsets, generics, authentication, perm
 from rest_framework.decorators import api_view #, action
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
+from drf_extra_fields.geo_fields import PointField
+
 from . import models
 
 
@@ -202,6 +204,7 @@ class PlaceSerializer(serializers.ModelSerializer):
 	image = serializers.SerializerMethodField()
 	rating = serializers.SerializerMethodField()
 	distance = serializers.SerializerMethodField()
+	location = PointField(required=False)
 
 	def get_image(self, instance):
 		# returning image url if there is an image else null

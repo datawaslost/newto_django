@@ -2,7 +2,10 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.gis.db.models import PointField
+from django.contrib.gis.geos import Point
 
+from geopy import geocoders
 from localflavor.us.models import USStateField
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -91,6 +94,7 @@ class Place(Item):
 	address = models.CharField(max_length=128, help_text="Street Address")
 	city = models.CharField(max_length=128)
 	state = USStateField()
+	location = PointField(blank=True, null=True)
 	# need zip?
 	# hours = models.CharField(max_length=128)
 	# need more complex hours field, currently using openinghours
@@ -99,6 +103,25 @@ class Place(Item):
 	category = models.ManyToManyField('Category', blank=True, help_text="Categories that this place appears under in search results.")
 	tags = models.ManyToManyField('Tag', blank=True)
 	ratings = models.ManyToManyField('Profile', through='Rating', blank=True)
+
+	def save(self, *args, **kwargs):
+		if self.address:
+			fulladdress = self.address + ", " + self.city + ", " + self.state
+			if not self.location:
+				g = geocoders.GoogleV3()
+				l = g.geocode(fulladdress)
+				self.location = Point(l.latitude, l.longitude)
+
+				"""
+				try:
+					g = geocoders.Google()
+					l = g.geocode(location)
+					self.location = Point(l.latitude, l.longitude)
+				except:
+					print("geocoding error")
+				#	print '%s' % e
+				"""
+		super(Place, self).save(*args, **kwargs)
 
 
 class Category(models.Model):
