@@ -321,11 +321,14 @@ def onboarding(request):
 @permission_classes([permissions.IsAuthenticated])
 def AddBookmark(request):
 	if request.method == 'POST' and request.data["id"]:
-		item = models.Item.objects.get(id=request.data["id"])
-		profile = request.user.profile
-		bookmark = models.Bookmark(profile=profile, item=item)
-		bookmark.save()
-		return Response({"success": True, "id": request.data["id"]})
+		try: 
+			item = models.Item.objects.get(id=request.data["id"])
+			profile = request.user.profile
+			bookmark = models.Bookmark(profile=profile, item=item)
+			bookmark.save()
+			return Response({"success": True, "id": request.data["id"]})
+		except:
+			return HttpResponse(status=400)
 	return HttpResponse(status=400)
 
 
@@ -333,8 +336,11 @@ def AddBookmark(request):
 @permission_classes([permissions.IsAuthenticated])
 def RemoveBookmark(request):
 	if request.method == 'POST' and request.data["id"]:
-		item = models.Item.objects.get(id=request.data["id"])
-		profile = request.user.profile
-		models.Bookmark.objects.get(profile=profile, item=item).delete()
-		return Response({"success": True, "id": request.data["id"]})
+		try: 
+			item = models.Item.objects.get(id=request.data["id"])
+			profile = request.user.profile
+			models.Bookmark.objects.get(profile=profile, item=item).delete()
+			return Response({"success": True, "id": request.data["id"]})
+		except:
+			return HttpResponse(status=400)
 	return HttpResponse(status=400)
