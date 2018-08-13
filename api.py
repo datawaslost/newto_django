@@ -160,6 +160,11 @@ class OrganizationSerializer(serializers.ModelSerializer):
 	popular = serializers.SerializerMethodField()
 	metro = MetroSerializer()
 	categories = CategorySerializer(many=True)
+	nav_image = serializers.SerializerMethodField()
+	
+	def get_nav_image(self, instance):
+		# returning image url if there is an image else blank string
+		return instance.nav_image.url if instance.nav_image else None
 
 	def get_popular(self, container):
 		# this needs to be a more complex algorithm for determiing popularity
