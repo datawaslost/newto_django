@@ -21,6 +21,7 @@ router.register(r'profile', api.ProfileViewSet)
 router.register(r'place', api.PlaceViewSet)
 router.register(r'item', api.ItemViewSet)
 router.register(r'group', api.GroupViewSet)
+#router.register(r'addbookmark', api.AddBookmark, base_name="addbookmark")
 
 
 urlpatterns = [
@@ -29,6 +30,8 @@ urlpatterns = [
 	url(r'^api/', include(router.urls)),
 	url(r'^api/emailcheck/', api.emailCheck, name='emailcheck'),
 	url(r'^api/onboarding/', api.onboarding, name='onboarding'),
+	url(r'^api/addbookmark/', api.AddBookmark, name='addbookmark'),
+	url(r'^api/removebookmark/', api.RemoveBookmark, name='removebookmark'),
 	url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 	url(r'^rest-auth/', include('rest_auth.urls')),
     url(r'^rest-auth/registration/', include('rest_auth.registration.urls')),

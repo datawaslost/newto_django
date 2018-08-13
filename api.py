@@ -7,8 +7,10 @@ from django.core.serializers import serialize
 from django.db import models as db_models
 
 from rest_framework import serializers, viewsets, generics, authentication, permissions
-from rest_framework.decorators import api_view #, action
+from rest_framework.decorators import api_view, permission_classes, authentication_classes #, action
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from drf_extra_fields.geo_fields import PointField
 
@@ -312,4 +314,27 @@ def onboarding(request):
 			return JsonResponse(data)
 		return HttpResponse(status=404)
 	return HttpResponse(status=400)
+	
 
+@api_view(['POST'])
+# @authentication_classes([authentication.TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def AddBookmark(request):
+	if request.method == 'POST' and request.data["id"]:
+		item = models.Item.objects.get(id=request.data["id"])
+		profile = request.user.profile
+		bookmark = models.Bookmark(profile=profile, item=item)
+		bookmark.save()
+		return Response({"success": True, "id": request.data["id"]})
+	return HttpResponse(status=400)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def RemoveBookmark(request):
+	if request.method == 'POST' and request.data["id"]:
+		item = models.Item.objects.get(id=request.data["id"])
+		profile = request.user.profile
+		models.Bookmark.objects.get(profile=profile, item=item).delete()
+		return Response({"success": True, "id": request.data["id"]})
+	return HttpResponse(status=400)
