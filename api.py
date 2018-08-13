@@ -86,7 +86,7 @@ class BookmarkSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Place
-		exclude = ('next', 'phone', 'metro', 'category', 'tags', 'ratings', 'address', 'city', 'state', 'ctas', 'content', 'public', 'link')
+		exclude = ('next', 'phone', 'metro', 'category', 'tags', 'ratings', 'address', 'city', 'state', 'ctas', 'content', 'public', 'link', 'location')
 
 
 class ItemSerializer(serializers.ModelSerializer):
