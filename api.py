@@ -101,7 +101,7 @@ class ItemSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Item
-		exclude = ('next', 'content', 'link', 'ctas', 'public', 'url',)
+		exclude = ('next', 'content', 'link', 'ctas', 'public')
 
 
 class FullItemSerializer(serializers.ModelSerializer):
@@ -111,7 +111,7 @@ class FullItemSerializer(serializers.ModelSerializer):
 	
 	def get_article(self, instance):
 		# return true if it's an article with content
-		return instance.content if instance.content != "" and instance.content != None else False
+		return True if instance.content != "" and instance.content != None else False
 	
 	def get_image(self, instance):
 		# returning image url if there is an image else blank string
