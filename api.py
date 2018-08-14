@@ -151,6 +151,12 @@ class DiscoverSerializer(serializers.ModelSerializer):
 		exclude = ('organization', 'item')
 
 
+class TodoSerializer(DiscoverSerializer):
+	class Meta:
+		model = models.Todo
+		exclude = ('profile', 'item')
+
+
 class FullItemSerializer(serializers.ModelSerializer):
 	ctas = CtaSerializer(many=True)
 	image = serializers.SerializerMethodField()
@@ -215,15 +221,12 @@ class CategorySerializer(serializers.ModelSerializer):
 		fields = ('id', 'name', 'image', 'tags', 'order')
 
 
-
-
 class OrganizationSerializer(serializers.ModelSerializer):
 	# tips = TipSerializer(many=True)
 	discover_items = serializers.SerializerMethodField()
 	popular = serializers.SerializerMethodField()
 	metro = MetroSerializer()
 	categories = serializers.SerializerMethodField()
-	# categories = CategorySerializer(source="categories_set", many=True)
 	nav_image = serializers.SerializerMethodField()
 
 	def get_discover_items(self, obj):
@@ -264,7 +267,12 @@ class ProfileSerializer(serializers.ModelSerializer):
 	# email = serializers.ReadOnlyField(source='user.email')
 	user = UserSerializer()
 	organization = OrganizationSerializer()
-	todo = ItemSerializer(many=True)
+	todo = serializers.SerializerMethodField()
+
+	def get_todo(self, obj):
+		qset = models.Todo.objects.filter(profile=obj)
+		return [TodoSerializer(m).data for m in qset]
+
 	class Meta:
 		model = models.Profile
 		fields = ('user', 'organization', 'id', 'url', 'todo')
@@ -352,8 +360,13 @@ class GroupViewSet(viewsets.ModelViewSet):
 class MeSerializer(serializers.ModelSerializer):
 	user = UserSerializer()
 	organization = OrganizationSerializer()
-	todo = ItemSerializer(many=True)
 	bookmarks = BookmarkSerializer(many=True)
+	todo = serializers.SerializerMethodField()
+
+	def get_todo(self, obj):
+		qset = models.Todo.objects.filter(profile=obj)
+		return [TodoSerializer(m).data for m in qset]
+
 	class Meta:
 		model = models.Profile
 		fields = ('user', 'organization', 'id', 'todo', 'bookmarks', 'hometown')
