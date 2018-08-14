@@ -376,10 +376,12 @@ def AddBookmark(request):
 def RemoveBookmark(request):
 	if request.method == 'POST' and request.data["id"]:
 		try: 
-			item = models.Item.objects.get(id=request.data["id"])
+			id = int(request.data["id"])
+			item = models.Item.objects.get(id=id)
 			profile = request.user.profile
-			models.Bookmark.objects.get(profile=profile, item=item).delete()
-			return Response({"success": True, "id": request.data["id"]})
+			bookmark = models.Bookmark.objects.filter(profile=profile, item=item)
+			bookmark.delete()
+			return Response({"success": True, "id": id})
 		except:
-			return HttpResponse(status=400)
+			return Response({"success": False, "id": int(request.data["id"]) })
 	return HttpResponse(status=400)
