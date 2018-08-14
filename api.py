@@ -152,6 +152,9 @@ class DiscoverSerializer(serializers.ModelSerializer):
 
 
 class TodoSerializer(DiscoverSerializer):
+	content = serializers.ReadOnlyField(source='item.content')
+	ctas = CtaSerializer(source='item.ctas', many=True)
+
 	class Meta:
 		model = models.Todo
 		exclude = ('profile', 'item')
