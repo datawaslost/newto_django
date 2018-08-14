@@ -167,6 +167,7 @@ class Todo(models.Model):
 	
 	class Meta:
 		verbose_name = "todo item"
+		ordering = ('order',)
 
 
 class Bookmark(models.Model):
@@ -174,6 +175,10 @@ class Bookmark(models.Model):
 	item = models.ForeignKey('Item', related_name='bookmark_item', on_delete=models.CASCADE)
 	datetime = models.DateTimeField(auto_now_add=True)
 	# need to add unique constraints to prevent duplicate bookmarks?
+
+	class Meta:
+		verbose_name = "bookmark item"
+		ordering = ('datetime',)
 
 
 class Discover(models.Model):
@@ -183,6 +188,7 @@ class Discover(models.Model):
 	
 	class Meta:
 		verbose_name = "discover item"
+		ordering = ('order',)
 
 
 class Default(models.Model):
@@ -192,6 +198,7 @@ class Default(models.Model):
 	
 	class Meta:
 		verbose_name = "default item"
+		ordering = ('order',)
 
 
 class OrgCategory(models.Model):
@@ -201,4 +208,5 @@ class OrgCategory(models.Model):
 	
 	class Meta:
 		verbose_name = "category"
+		ordering = ('order',)
 

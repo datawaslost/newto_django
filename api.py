@@ -47,6 +47,11 @@ class BookmarkSerializer(serializers.ModelSerializer):
 	rating = serializers.SerializerMethodField()
 	distance = serializers.SerializerMethodField()
 	items = serializers.SerializerMethodField()
+	article = serializers.SerializerMethodField()
+	
+	def get_article(self, instance):
+		# return true if it's an article with content
+		return True if instance.content != "" and instance.content != None else False
 
 	def get_image(self, instance):
 		# returning image url if there is an image else null
@@ -78,14 +83,6 @@ class BookmarkSerializer(serializers.ModelSerializer):
 		# connect this to a group items calculation later
 		return 3
 
-	"""
-	def get_city(self, instance):
-		try:
-			return type(instance)._meta.get_field('city')
-		except db_models.FieldDoesNotExist:
-			return None
-	"""
-
 	class Meta:
 		model = models.Place
 		exclude = ('next', 'phone', 'metro', 'category', 'tags', 'ratings', 'address', 'city', 'state', 'ctas', 'content', 'public', 'link', 'location')
@@ -94,7 +91,20 @@ class BookmarkSerializer(serializers.ModelSerializer):
 class ItemSerializer(serializers.ModelSerializer):
 	image = serializers.SerializerMethodField()
 	article = serializers.SerializerMethodField()
-	
+	group = serializers.SerializerMethodField()
+	items = serializers.SerializerMethodField()
+
+	def get_group(self, instance):
+		try:
+			place = getattr(instance, "group")
+			return True
+		except:
+			return False
+
+	def get_items(self, instance):
+		# connect this to a group items calculation later
+		return 3
+
 	def get_article(self, instance):
 		# return true if it's an article with content
 		return True if instance.content != "" and instance.content != None else False
@@ -106,6 +116,39 @@ class ItemSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.Item
 		exclude = ('next', 'content', 'link', 'ctas', 'public')
+
+
+class DiscoverSerializer(serializers.ModelSerializer):
+	id = serializers.ReadOnlyField(source='item.id')
+	name = serializers.ReadOnlyField(source='item.name')
+	sponsor = serializers.ReadOnlyField(source='item.sponsor')
+	image = serializers.SerializerMethodField()
+	article = serializers.SerializerMethodField()
+	group = serializers.SerializerMethodField()
+	items = serializers.SerializerMethodField()
+
+	def get_group(self, instance):
+		try:
+			place = getattr(instance.item, "group")
+			return True
+		except:
+			return False
+
+	def get_items(self, instance):
+		# connect this to a group items calculation later
+		return 3
+
+	def get_article(self, instance):
+		# return true if it's an article with content
+		return True if instance.item.content != "" and instance.item.content != None else False
+	
+	def get_image(self, instance):
+		# returning image url if there is an image else blank string
+		return instance.item.image.url if instance.item.image else None
+
+	class Meta:
+		model = models.Discover
+		exclude = ('organization', 'item')
 
 
 class FullItemSerializer(serializers.ModelSerializer):
@@ -157,26 +200,40 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-	tags = TagSerializer(many=True)
+	id = serializers.ReadOnlyField(source='category.id')
+	name = serializers.ReadOnlyField(source='category.name')
 	image = serializers.SerializerMethodField()
-	
+	tags = TagSerializer(source='category.tags', many=True)
+	# tags = serializers.ReadOnlyField(source='category.tags')
+
 	def get_image(self, instance):
 		# returning image url if there is an image else blank string
-		return instance.image.url if instance.image else None
+		return instance.category.image.url if instance.category.image else None
 
 	class Meta:
-		model = models.Category
-		fields = ('name', 'id', 'image', 'tags')
+		model = models.OrgCategory
+		fields = ('id', 'name', 'image', 'tags', 'order')
+
+
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
 	# tips = TipSerializer(many=True)
-	discover_items = ItemSerializer(many=True)
+	discover_items = serializers.SerializerMethodField()
 	popular = serializers.SerializerMethodField()
 	metro = MetroSerializer()
-	categories = CategorySerializer(many=True)
+	categories = serializers.SerializerMethodField()
+	# categories = CategorySerializer(source="categories_set", many=True)
 	nav_image = serializers.SerializerMethodField()
-	
+
+	def get_discover_items(self, obj):
+		qset = models.Discover.objects.filter(organization=obj)
+		return [DiscoverSerializer(m).data for m in qset]
+
+	def get_categories(self, obj):
+		qset = models.OrgCategory.objects.filter(organization=obj)
+		return [CategorySerializer(m).data for m in qset]
+
 	def get_nav_image(self, instance):
 		# returning image url if there is an image else blank string
 		return instance.nav_image.url if instance.nav_image else None
