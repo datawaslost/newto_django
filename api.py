@@ -80,8 +80,11 @@ class BookmarkSerializer(serializers.ModelSerializer):
 		return 1.7
 
 	def get_items(self, instance):
-		# connect this to a group items calculation later
-		return 3
+		try:
+			count = instance.group.items.count()
+			return count
+		except:
+			return 0
 
 	class Meta:
 		model = models.Place
@@ -102,8 +105,11 @@ class ItemSerializer(serializers.ModelSerializer):
 			return False
 
 	def get_items(self, instance):
-		# connect this to a group items calculation later
-		return 3
+		try:
+			count = instance.group.items.count()
+			return count
+		except:
+			return 0
 
 	def get_article(self, instance):
 		# return true if it's an article with content
@@ -135,8 +141,11 @@ class DiscoverSerializer(serializers.ModelSerializer):
 			return False
 
 	def get_items(self, instance):
-		# connect this to a group items calculation later
-		return 3
+		try:
+			count = instance.item.group.items.count()
+			return count
+		except:
+			return 0
 
 	def get_article(self, instance):
 		# return true if it's an article with content
@@ -270,6 +279,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 	# email = serializers.ReadOnlyField(source='user.email')
 	user = UserSerializer()
 	organization = OrganizationSerializer()
+	bookmarks = BookmarkSerializer(many=True)
 	todo = serializers.SerializerMethodField()
 
 	def get_todo(self, obj):
@@ -278,7 +288,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Profile
-		fields = ('user', 'organization', 'id', 'url', 'todo')
+		fields = ('user', 'organization', 'id', 'url', 'todo', 'bookmarks')
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
