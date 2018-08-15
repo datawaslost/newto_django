@@ -48,6 +48,11 @@ class BookmarkSerializer(serializers.ModelSerializer):
 	distance = serializers.SerializerMethodField()
 	items = serializers.SerializerMethodField()
 	article = serializers.SerializerMethodField()
+	bookmarked = serializers.SerializerMethodField()
+
+	def get_bookmarked(self, instance):
+		# these are bookmarks, they're all bookmarked
+		return True
 	
 	def get_article(self, instance):
 		# return true if it's an article with content
@@ -96,6 +101,18 @@ class ItemSerializer(serializers.ModelSerializer):
 	article = serializers.SerializerMethodField()
 	group = serializers.SerializerMethodField()
 	items = serializers.SerializerMethodField()
+	bookmarked = serializers.SerializerMethodField()
+
+	def get_bookmarked(self, instance):
+		# return true if this item is bookmarked by the user
+		request = self.context.get("request")
+		if request and hasattr(request, "user"):
+			try:
+				profile = request.user.profile
+				return models.Bookmark.objects.filter(item=instance.item, profile=profile).exists()
+			except:
+				return False
+		return False
 
 	def get_group(self, instance):
 		try:
@@ -167,7 +184,6 @@ class TodoSerializer(DiscoverSerializer):
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
-		user = None
 		request = self.context.get("request")
 		if request and hasattr(request, "user"):
 			try:
@@ -190,7 +206,6 @@ class FullItemSerializer(serializers.ModelSerializer):
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
-		user = None
 		request = self.context.get("request")
 		if request and hasattr(request, "user"):
 			try:
@@ -254,24 +269,24 @@ class OrganizationSerializer(serializers.ModelSerializer):
 	categories = serializers.SerializerMethodField()
 	nav_image = serializers.SerializerMethodField()
 
-	def get_discover_items(self, obj):
-		qset = models.Discover.objects.filter(organization=obj)
-		return [DiscoverSerializer(m).data for m in qset]
-		# return [DiscoverSerializer(m, context={'request': self.request}).data for m in qset]
+	def get_discover_items(self, instance):
+		qset = models.Discover.objects.filter(organization=instance)
+		request = self._context.get("request")
+		return [DiscoverSerializer(m, context={'request': request}).data for m in qset]
 
-	def get_categories(self, obj):
-		qset = models.OrgCategory.objects.filter(organization=obj)
+	def get_categories(self, instance):
+		qset = models.OrgCategory.objects.filter(organization=instance)
 		return [CategorySerializer(m).data for m in qset]
 
 	def get_nav_image(self, instance):
 		# returning image url if there is an image else blank string
 		return instance.nav_image.url if instance.nav_image else None
 
-	def get_popular(self, container):
+	def get_popular(self, instance):
 		# this needs to be a more complex algorithm for determiing popularity
-		items = models.Item.objects.all().order_by('-id')[:10]
-		serializer = ItemSerializer(instance=items, many=True)
-		return serializer.data
+		qset = models.Item.objects.all().order_by('-id')[:10]
+		request = self._context.get("request")
+		return [ItemSerializer(m, context={'request': request}).data for m in qset]
 
 	class Meta:
 		model = models.Organization
@@ -290,15 +305,15 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-	# email = serializers.ReadOnlyField(source='user.email')
 	user = UserSerializer()
 	organization = OrganizationSerializer()
 	bookmarks = BookmarkSerializer(many=True)
 	todo = serializers.SerializerMethodField()
 
-	def get_todo(self, obj):
-		qset = models.Todo.objects.filter(profile=obj)
-		return [TodoSerializer(m).data for m in qset]
+	def get_todo(self, instance):
+		qset = models.Todo.objects.filter(profile=instance)
+		request = self._context.get("request")
+		return [TodoSerializer(m, context={'request': request}).data for m in qset]
 
 	class Meta:
 		model = models.Profile
@@ -311,8 +326,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
 
 class PlaceSerializer(serializers.ModelSerializer):
-	# category = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
-	# tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
 	image = serializers.SerializerMethodField()
 	rating = serializers.SerializerMethodField()
 	distance = serializers.SerializerMethodField()
@@ -321,7 +334,6 @@ class PlaceSerializer(serializers.ModelSerializer):
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
-		user = None
 		request = self.context.get("request")
 		if request and hasattr(request, "user"):
 			try:
@@ -354,13 +366,12 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
 
 class GroupSerializer(serializers.ModelSerializer):
-	items = ItemSerializer(many=True)
+	items = serializers.SerializerMethodField()
 	image = serializers.SerializerMethodField()
 	bookmarked = serializers.SerializerMethodField()
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
-		user = None
 		request = self.context.get("request")
 		if request and hasattr(request, "user"):
 			try:
@@ -373,7 +384,12 @@ class GroupSerializer(serializers.ModelSerializer):
 	def get_image(self, instance):
 		# returning image url if there is an image else blank string
 		return instance.image.url if instance.image else None
-	
+
+	def get_items(self, instance):
+		qset = instance.items.all()
+		request = self._context.get("request")
+		return [ItemSerializer(m, context={'request': request}).data for m in qset]
+
 	class Meta:
 		model = models.Group
 		exclude = ('next', 'ctas', 'link')
@@ -385,16 +401,21 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 
 class MeSerializer(serializers.ModelSerializer):
+	# do we need any bits of the user beyond email?
+	# email = serializers.ReadOnlyField(source='user.email')
 	user = UserSerializer()
-	organization = OrganizationSerializer()
 	bookmarks = BookmarkSerializer(many=True)
 	todo = serializers.SerializerMethodField()
+	organization= serializers.SerializerMethodField()
 
-	def get_todo(self, obj):
-		qset = models.Todo.objects.filter(profile=obj)
-		# request = getattr(self._context, 'request')
+	def get_todo(self, instance):
+		qset = models.Todo.objects.filter(profile=instance)
 		request = self._context.get("request")
 		return [TodoSerializer(m, context={'request': request}).data for m in qset]
+
+	def get_organization(self, instance):
+		request = self._context.get("request")
+		return OrganizationSerializer(instance.organization, context={'request': request}).data
 
 	class Meta:
 		model = models.Profile
