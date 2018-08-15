@@ -106,7 +106,7 @@ class ItemSerializer(serializers.ModelSerializer):
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
 		request = self.context.get("request")
-		if request and hasattr(request, "user"):
+		if request:
 			try:
 				profile = request.user.profile
 				return models.Bookmark.objects.filter(item=instance.item, profile=profile).exists()
@@ -144,7 +144,7 @@ class ItemSerializer(serializers.ModelSerializer):
 class DiscoverSerializer(serializers.ModelSerializer):
 	id = serializers.ReadOnlyField(source='item.id')
 	name = serializers.ReadOnlyField(source='item.name')
-	sponsor = serializers.ReadOnlyField(source='item.sponsor')
+	sponsored = serializers.ReadOnlyField(source='item.sponsor')
 	image = serializers.SerializerMethodField()
 	article = serializers.SerializerMethodField()
 	group = serializers.SerializerMethodField()
@@ -185,7 +185,7 @@ class TodoSerializer(DiscoverSerializer):
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
 		request = self.context.get("request")
-		if request and hasattr(request, "user"):
+		if request:
 			try:
 				profile = request.user.profile
 				return models.Bookmark.objects.filter(item=instance.item, profile=profile).exists()
@@ -207,7 +207,7 @@ class FullItemSerializer(serializers.ModelSerializer):
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
 		request = self.context.get("request")
-		if request and hasattr(request, "user"):
+		if request:
 			try:
 				profile = request.user.profile
 				return models.Bookmark.objects.filter(item=instance, profile=profile).exists()
@@ -335,7 +335,7 @@ class PlaceSerializer(serializers.ModelSerializer):
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
 		request = self.context.get("request")
-		if request and hasattr(request, "user"):
+		if request:
 			try:
 				profile = request.user.profile
 				return models.Bookmark.objects.filter(item=instance, profile=profile).exists()
@@ -373,7 +373,7 @@ class GroupSerializer(serializers.ModelSerializer):
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
 		request = self.context.get("request")
-		if request and hasattr(request, "user"):
+		if request:
 			try:
 				profile = request.user.profile
 				return models.Bookmark.objects.filter(item=instance, profile=profile).exists()
