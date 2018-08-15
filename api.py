@@ -163,6 +163,19 @@ class DiscoverSerializer(serializers.ModelSerializer):
 class TodoSerializer(DiscoverSerializer):
 	content = serializers.ReadOnlyField(source='item.content')
 	ctas = CtaSerializer(source='item.ctas', many=True)
+	bookmarked = serializers.SerializerMethodField()
+
+	def get_bookmarked(self, instance):
+		# return true if this item is bookmarked by the user
+		user = None
+		request = self.context.get("request")
+		if request and hasattr(request, "user"):
+			try:
+				profile = request.user.profile
+				return models.Bookmark.objects.filter(item=instance.item, profile=profile).exists()
+			except:
+				return False
+		return False
 
 	class Meta:
 		model = models.Todo
@@ -244,6 +257,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 	def get_discover_items(self, obj):
 		qset = models.Discover.objects.filter(organization=obj)
 		return [DiscoverSerializer(m).data for m in qset]
+		# return [DiscoverSerializer(m, context={'request': self.request}).data for m in qset]
 
 	def get_categories(self, obj):
 		qset = models.OrgCategory.objects.filter(organization=obj)
@@ -378,7 +392,9 @@ class MeSerializer(serializers.ModelSerializer):
 
 	def get_todo(self, obj):
 		qset = models.Todo.objects.filter(profile=obj)
-		return [TodoSerializer(m).data for m in qset]
+		# request = getattr(self._context, 'request')
+		request = self._context.get("request")
+		return [TodoSerializer(m, context={'request': request}).data for m in qset]
 
 	class Meta:
 		model = models.Profile
@@ -389,9 +405,11 @@ class MeViewSet(viewsets.ModelViewSet):
 	# authentication_classes = (JSONWebTokenAuthentication,)
 	permission_classes = (permissions.IsAuthenticated,)
 	serializer_class = MeSerializer
-
-	def get_queryset(self):
-		return models.Profile.objects.filter(user=self.request.user.pk)
+	
+	def list(self, *args, **kwargs):
+		queryset = models.Profile.objects.filter(user=self.request.user.pk)
+		serializer = MeSerializer(queryset, many=True, context={'request': self.request })
+		return Response(serializer.data)
 
 	
 @csrf_exempt
