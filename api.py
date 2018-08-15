@@ -507,3 +507,36 @@ def RemoveBookmark(request):
 		except:
 			return Response({"success": False, "id": int(request.data["id"]) })
 	return HttpResponse(status=400)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def AddDone(request):
+	if request.method == 'POST' and request.data["id"]:
+		try: 
+			item = models.Item.objects.get(id=request.data["id"])
+			profile = request.user.profile
+			todo = models.Todo(profile=profile, item=item)
+			todo.done = True
+			todo.save()
+			return Response({"success": True, "id": request.data["id"]})
+		except:
+			return HttpResponse(status=400)
+	return HttpResponse(status=400)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def RemoveDone(request):
+	if request.method == 'POST' and request.data["id"]:
+		try: 
+			id = int(request.data["id"])
+			item = models.Item.objects.get(id=id)
+			profile = request.user.profile
+			todo = models.Todo(profile=profile, item=item)
+			todo.done = False
+			todo.save()
+			return Response({"success": True, "id": id})
+		except:
+			return Response({"success": False, "id": int(request.data["id"]) })
+	return HttpResponse(status=400)
