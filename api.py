@@ -102,6 +102,18 @@ class ItemSerializer(serializers.ModelSerializer):
 	group = serializers.SerializerMethodField()
 	items = serializers.SerializerMethodField()
 	bookmarked = serializers.SerializerMethodField()
+	done = serializers.SerializerMethodField()
+
+	def get_done(self, instance):
+		# return true if this item is marked as done by the user
+		request = self.context.get("request")
+		if request:
+			try:
+				profile = request.user.profile
+				return models.Todo.objects.filter(item=instance, profile=profile, done=True).exists()
+			except:
+				return False
+		return False
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
@@ -109,7 +121,7 @@ class ItemSerializer(serializers.ModelSerializer):
 		if request:
 			try:
 				profile = request.user.profile
-				return models.Bookmark.objects.filter(item=instance.item, profile=profile).exists()
+				return models.Bookmark.objects.filter(item=instance, profile=profile).exists()
 			except:
 				return False
 		return False
@@ -181,6 +193,18 @@ class TodoSerializer(DiscoverSerializer):
 	content = serializers.ReadOnlyField(source='item.content')
 	ctas = CtaSerializer(source='item.ctas', many=True)
 	bookmarked = serializers.SerializerMethodField()
+	done = serializers.SerializerMethodField()
+
+	def get_done(self, instance):
+		# return true if this item is marked as done by the user
+		request = self.context.get("request")
+		if request:
+			try:
+				profile = request.user.profile
+				return models.Todo.objects.filter(item=instance.item, profile=profile, done=True).exists()
+			except:
+				return False
+		return False
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
@@ -203,6 +227,19 @@ class FullItemSerializer(serializers.ModelSerializer):
 	image = serializers.SerializerMethodField()
 	article = serializers.SerializerMethodField()
 	bookmarked = serializers.SerializerMethodField()
+	done = serializers.SerializerMethodField()
+
+	def get_done(self, instance):
+		# return true if this item is marked as done by the user
+		request = self.context.get("request")
+		if request:
+			try:
+				profile = request.user.profile
+				return models.Todo.objects.filter(item=instance, profile=profile, done=True).exists()
+			except:
+				return False
+		return False
+
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
@@ -311,7 +348,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 	todo = serializers.SerializerMethodField()
 
 	def get_todo(self, instance):
-		qset = models.Todo.objects.filter(profile=instance)
+		qset = models.Todo.objects.filter(profile=instance, done=False)
 		request = self._context.get("request")
 		return [TodoSerializer(m, context={'request': request}).data for m in qset]
 
@@ -369,6 +406,18 @@ class GroupSerializer(serializers.ModelSerializer):
 	items = serializers.SerializerMethodField()
 	image = serializers.SerializerMethodField()
 	bookmarked = serializers.SerializerMethodField()
+	done = serializers.SerializerMethodField()
+
+	def get_done(self, instance):
+		# return true if this item is marked as done by the user
+		request = self.context.get("request")
+		if request:
+			try:
+				profile = request.user.profile
+				return models.Todo.objects.filter(item=instance, profile=profile, done=True).exists()
+			except:
+				return False
+		return False
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
@@ -409,7 +458,7 @@ class MeSerializer(serializers.ModelSerializer):
 	organization= serializers.SerializerMethodField()
 
 	def get_todo(self, instance):
-		qset = models.Todo.objects.filter(profile=instance)
+		qset = models.Todo.objects.filter(profile=instance, done=False)
 		request = self._context.get("request")
 		return [TodoSerializer(m, context={'request': request}).data for m in qset]
 
@@ -483,13 +532,13 @@ def onboarding(request):
 def AddBookmark(request):
 	if request.method == 'POST' and request.data["id"]:
 		try: 
-			item = models.Item.objects.get(id=request.data["id"])
+			item = models.Item.objects.get(id=int(request.data["id"]))
 			profile = request.user.profile
 			bookmark = models.Bookmark(profile=profile, item=item)
 			bookmark.save()
-			return Response({"success": True, "id": request.data["id"]})
+			return Response( { "success": True, "id": int(request.data["id"]) } )
 		except:
-			return HttpResponse(status=400)
+			return Response( { "success": False, "id": int(request.data["id"]) } )
 	return HttpResponse(status=400)
 
 
@@ -498,14 +547,12 @@ def AddBookmark(request):
 def RemoveBookmark(request):
 	if request.method == 'POST' and request.data["id"]:
 		try: 
-			id = int(request.data["id"])
-			item = models.Item.objects.get(id=id)
+			item = models.Item.objects.get(id=int(request.data["id"]))
 			profile = request.user.profile
-			bookmark = models.Bookmark.objects.filter(profile=profile, item=item)
-			bookmark.delete()
-			return Response({"success": True, "id": id})
+			models.Bookmark.objects.filter(profile=profile, item=item).delete()
+			return Response( { "success": True, "id": int(request.data["id"]) } )
 		except:
-			return Response({"success": False, "id": int(request.data["id"]) })
+			return Response( { "success": False, "id": int(request.data["id"]) } )
 	return HttpResponse(status=400)
 
 
@@ -514,12 +561,15 @@ def RemoveBookmark(request):
 def AddDone(request):
 	if request.method == 'POST' and request.data["id"]:
 		try: 
-			item = models.Item.objects.get(id=request.data["id"])
+			item = models.Item.objects.get(id=int(request.data["id"]))
 			profile = request.user.profile
-			todo = models.Todo(profile=profile, item=item)
-			todo.done = True
-			todo.save()
-			return Response({"success": True, "id": request.data["id"]})
+			todo = models.Todo.objects.filter(profile=profile, item=item)
+			if todo:
+				todo.update(done=True)
+			else:
+				todo = models.Todo(profile=profile, item=item, order=1, done=True)
+				todo.save()
+			return Response( { "success": True, "id": int(request.data["id"]) } )
 		except:
 			return HttpResponse(status=400)
 	return HttpResponse(status=400)
@@ -530,13 +580,10 @@ def AddDone(request):
 def RemoveDone(request):
 	if request.method == 'POST' and request.data["id"]:
 		try: 
-			id = int(request.data["id"])
-			item = models.Item.objects.get(id=id)
+			item = models.Item.objects.get(id=int(request.data["id"]))
 			profile = request.user.profile
-			todo = models.Todo(profile=profile, item=item)
-			todo.done = False
-			todo.save()
-			return Response({"success": True, "id": id})
+			models.Todo.objects.filter(profile=profile, item=item).update(done=False)
+			return Response( { "success": True, "id": int(request.data["id"]) } )
 		except:
-			return Response({"success": False, "id": int(request.data["id"]) })
+			return Response( { "success": False, "id": int(request.data["id"]) } )
 	return HttpResponse(status=400)
