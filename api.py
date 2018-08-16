@@ -230,6 +230,18 @@ class FullItemSerializer(serializers.ModelSerializer):
 	article = serializers.SerializerMethodField()
 	bookmarked = serializers.SerializerMethodField()
 	done = serializers.SerializerMethodField()
+	todo = serializers.SerializerMethodField()
+
+	def get_todo(self, instance):
+		# return true if this item is marked as done by the user
+		request = self.context.get("request")
+		if request:
+			try:
+				profile = request.user.profile
+				return models.Todo.objects.filter(item=instance, profile=profile).exists()
+			except:
+				return False
+		return False
 
 	def get_done(self, instance):
 		# return true if this item is marked as done by the user
@@ -241,7 +253,6 @@ class FullItemSerializer(serializers.ModelSerializer):
 			except:
 				return False
 		return False
-
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
@@ -439,6 +450,18 @@ class GroupSerializer(serializers.ModelSerializer):
 	image = serializers.SerializerMethodField()
 	bookmarked = serializers.SerializerMethodField()
 	done = serializers.SerializerMethodField()
+	todo = serializers.SerializerMethodField()
+
+	def get_todo(self, instance):
+		# return true if this item is marked as done by the user
+		request = self.context.get("request")
+		if request:
+			try:
+				profile = request.user.profile
+				return models.Todo.objects.filter(item=instance, profile=profile).exists()
+			except:
+				return False
+		return False
 
 	def get_done(self, instance):
 		# return true if this item is marked as done by the user
@@ -615,6 +638,39 @@ def RemoveDone(request):
 			item = models.Item.objects.get(id=int(request.data["id"]))
 			profile = request.user.profile
 			models.Todo.objects.filter(profile=profile, item=item).update(done=False)
+			return Response( { "success": True, "id": int(request.data["id"]) } )
+		except:
+			return Response( { "success": False, "id": int(request.data["id"]) } )
+	return HttpResponse(status=400)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def AddList(request):
+	if request.method == 'POST' and request.data["id"]:
+		try: 
+			item = models.Item.objects.get(id=int(request.data["id"]))
+			profile = request.user.profile
+			todo = models.Todo.objects.filter(profile=profile, item=item)
+			if todo:
+				todo.update(done=False)
+			else:
+				todo = models.Todo(profile=profile, item=item, order=1, done=False)
+				todo.save()
+			return Response( { "success": True, "id": int(request.data["id"]) } )
+		except:
+			return HttpResponse(status=400)
+	return HttpResponse(status=400)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def RemoveList(request):
+	if request.method == 'POST' and request.data["id"]:
+		try: 
+			item = models.Item.objects.get(id=int(request.data["id"]))
+			profile = request.user.profile
+			models.Todo.objects.filter(profile=profile, item=item).delete()
 			return Response( { "success": True, "id": int(request.data["id"]) } )
 		except:
 			return Response( { "success": False, "id": int(request.data["id"]) } )
