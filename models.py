@@ -49,6 +49,7 @@ class Organization(models.Model):
 	nav_image = models.ImageField(blank=True)
 	nav_name = models.CharField(max_length=128, blank=True)
 	categories = models.ManyToManyField('Category', through='OrgCategory', related_name='organization_categories', blank=True, help_text="Categories to show on the search screen.")
+	link = models.URLField(blank=True, help_text="URL for Nav site")
 
 	def __str__(self):
 		return self.name

@@ -327,7 +327,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Organization
-		fields = ('name', 'metro', 'id', 'discover_items', 'popular', 'nav_name', 'nav_image', 'categories')
+		fields = ('name', 'metro', 'id', 'discover_items', 'popular', 'nav_name', 'nav_image', 'categories', 'link')
 
 
 class SimpleOrganizationSerializer(serializers.ModelSerializer):
