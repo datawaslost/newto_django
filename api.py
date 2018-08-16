@@ -411,19 +411,26 @@ class M2MFilter(Filter):
 		return qs
 
 
+class DistanceFilter(Filter):
+	
+	# this needs to do distance calculations later, or connect to the serializer's function
+	def filter(self, qs, value):
+		return qs
+
+
 class PlaceFilter(FilterSet):
 	tags = M2MFilter()
+	maxdistance = DistanceFilter()
 	
 	class Meta:
 		model = models.Place
-		fields = ('category','metro','tags')
+		fields = ('category','metro','tags','maxdistance')
 
 
 class PlaceViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = models.Place.objects.all()
 	serializer_class = PlaceSerializer
 	filter_backends = (DjangoFilterBackend,)
-	# filter_fields = ('metro', 'category')
 	filterset_class = PlaceFilter
 
 

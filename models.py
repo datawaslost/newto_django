@@ -96,7 +96,6 @@ class Place(Item):
 	city = models.CharField(max_length=128)
 	state = USStateField()
 	location = PointField(blank=True, null=True)
-	# need zip?
 	# hours = models.CharField(max_length=128)
 	# need more complex hours field, currently using openinghours
 	phone = PhoneNumberField(blank=True, verbose_name="Phone Number")
@@ -109,19 +108,12 @@ class Place(Item):
 		if self.address:
 			fulladdress = self.address + ", " + self.city + ", " + self.state
 			if not self.location:
-				g = geocoders.GoogleV3()
-				l = g.geocode(fulladdress)
-				self.location = Point(l.latitude, l.longitude)
-
-				"""
 				try:
-					g = geocoders.Google()
-					l = g.geocode(location)
+					g = geocoders.GoogleV3()
+					l = g.geocode(fulladdress)
 					self.location = Point(l.latitude, l.longitude)
 				except:
 					print("geocoding error")
-				#	print '%s' % e
-				"""
 		super(Place, self).save(*args, **kwargs)
 
 
