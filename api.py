@@ -12,6 +12,8 @@ from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import Filter, FilterSet
 from drf_extra_fields.geo_fields import PointField
 
 from . import models
@@ -23,7 +25,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 		fields = ('email', 'is_staff', 'id')
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = User.objects.all()
 	serializer_class = UserSerializer
 
@@ -265,7 +267,7 @@ class FullItemSerializer(serializers.ModelSerializer):
 		exclude = ('next', 'public',)
 
 
-class ItemViewSet(viewsets.ModelViewSet):
+class ItemViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = models.Item.objects.all()
 	serializer_class = FullItemSerializer
 
@@ -336,7 +338,7 @@ class SimpleOrganizationSerializer(serializers.ModelSerializer):
 		fields = ('name', 'id')
 
 
-class OrganizationViewSet(viewsets.ModelViewSet):
+class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = models.Organization.objects.filter(public=True)
 	serializer_class = SimpleOrganizationSerializer
 
@@ -357,7 +359,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 		fields = ('user', 'organization', 'id', 'url', 'todo', 'bookmarks')
 
 
-class ProfileViewSet(viewsets.ModelViewSet):
+class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = models.Profile.objects.all()
 	serializer_class = ProfileSerializer
 
@@ -397,9 +399,33 @@ class PlaceSerializer(serializers.ModelSerializer):
 		exclude = ('next', 'ctas', 'ratings', 'metro', 'category', 'tags')
 
 
-class PlaceViewSet(viewsets.ModelViewSet):
+class M2MFilter(Filter):
+	
+	def filter(self, qs, value):
+		if not value:
+			return qs
+	
+		values = value.split(',')
+		for v in values:
+			qs = qs.filter(category=v)
+		return qs
+
+
+class PlaceFilter(FilterSet):
+	# category = M2MFilter(name='category')
+	category = M2MFilter()
+	
+	class Meta:
+		model = models.Place
+		fields = ('category','metro')
+
+
+class PlaceViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = models.Place.objects.all()
 	serializer_class = PlaceSerializer
+	filter_backends = (DjangoFilterBackend,)
+	# filter_fields = ('metro', 'category')
+	filterset_class = PlaceFilter
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -444,7 +470,7 @@ class GroupSerializer(serializers.ModelSerializer):
 		exclude = ('next', 'ctas', 'link')
 
 
-class GroupViewSet(viewsets.ModelViewSet):
+class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = models.Group.objects.all()
 	serializer_class = GroupSerializer
 
@@ -471,7 +497,7 @@ class MeSerializer(serializers.ModelSerializer):
 		fields = ('user', 'organization', 'id', 'todo', 'bookmarks', 'hometown')
 
 
-class MeViewSet(viewsets.ModelViewSet):
+class MeViewSet(viewsets.ReadOnlyModelViewSet):
 	# authentication_classes = (JSONWebTokenAuthentication,)
 	permission_classes = (permissions.IsAuthenticated,)
 	serializer_class = MeSerializer
