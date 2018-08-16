@@ -407,17 +407,16 @@ class M2MFilter(Filter):
 	
 		values = value.split(',')
 		for v in values:
-			qs = qs.filter(category=v)
+			qs = qs.filter(tags=v)
 		return qs
 
 
 class PlaceFilter(FilterSet):
-	# category = M2MFilter(name='category')
-	category = M2MFilter()
+	tags = M2MFilter()
 	
 	class Meta:
 		model = models.Place
-		fields = ('category','metro')
+		fields = ('category','metro','tags')
 
 
 class PlaceViewSet(viewsets.ReadOnlyModelViewSet):
