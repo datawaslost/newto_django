@@ -158,7 +158,7 @@ class ItemSerializer(serializers.ModelSerializer):
 class DiscoverSerializer(serializers.ModelSerializer):
 	id = serializers.ReadOnlyField(source='item.id')
 	name = serializers.ReadOnlyField(source='item.name')
-	sponsored = serializers.ReadOnlyField(source='item.sponsor')
+	sponsor = serializers.ReadOnlyField(source='item.sponsor')
 	image = serializers.SerializerMethodField()
 	article = serializers.SerializerMethodField()
 	group = serializers.SerializerMethodField()
@@ -231,6 +231,22 @@ class FullItemSerializer(serializers.ModelSerializer):
 	bookmarked = serializers.SerializerMethodField()
 	done = serializers.SerializerMethodField()
 	todo = serializers.SerializerMethodField()
+	group = serializers.SerializerMethodField()
+	place = serializers.SerializerMethodField()
+
+	def get_group(self, instance):
+		try:
+			place = getattr(instance, "group")
+			return True
+		except:
+			return False
+
+	def get_place(self, instance):
+		try:
+			place = getattr(instance, "place")
+			return True
+		except:
+			return False
 
 	def get_todo(self, instance):
 		# return true if this item is marked as done by the user
@@ -451,6 +467,18 @@ class GroupSerializer(serializers.ModelSerializer):
 	bookmarked = serializers.SerializerMethodField()
 	done = serializers.SerializerMethodField()
 	todo = serializers.SerializerMethodField()
+	group = serializers.SerializerMethodField()
+	place = serializers.SerializerMethodField()
+	article = serializers.SerializerMethodField()
+	
+	def get_group(self, instance):
+		return True
+
+	def get_place(self, instance):
+		return False
+
+	def get_article(self, instance):
+		return False
 
 	def get_todo(self, instance):
 		# return true if this item is marked as done by the user
