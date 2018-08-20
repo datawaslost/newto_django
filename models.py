@@ -104,6 +104,9 @@ class Place(Item):
 	tags = models.ManyToManyField('Tag', blank=True)
 	ratings = models.ManyToManyField('Profile', through='Rating', blank=True)
 
+	def rating(self):
+		return Rating.objects.filter(place=self).aggregate(models.Avg('rating'))
+	
 	def save(self, *args, **kwargs):
 		if self.address:
 			fulladdress = self.address + ", " + self.city + ", " + self.state

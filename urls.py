@@ -36,7 +36,8 @@ urlpatterns = [
 	url(r'^api/removedone/', api.RemoveDone, name='removedone'),
 	url(r'^api/addlist/', api.AddList, name='addlist'),
 	url(r'^api/removelist/', api.RemoveList, name='removelist'),
-	
+	url(r'^api/addrating/', api.AddRating, name='addrating'),
+
 	url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 	url(r'^rest-auth/', include('rest_auth.urls')),
     url(r'^rest-auth/registration/', include('rest_auth.registration.urls')),

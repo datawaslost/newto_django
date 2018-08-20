@@ -79,8 +79,11 @@ class BookmarkSerializer(serializers.ModelSerializer):
 			return False
 
 	def get_rating(self, instance):
-		# connect this to an average of ratings later
-		return 3.0
+		try:
+			place = getattr(instance, "place")
+			return place.rating()["rating__avg"]
+		except:
+			return None
 
 	def get_distance(self, instance):
 		# connect this to a distance calculation later
@@ -397,6 +400,18 @@ class PlaceSerializer(serializers.ModelSerializer):
 	distance = serializers.SerializerMethodField()
 	location = PointField(required=False)
 	bookmarked = serializers.SerializerMethodField()
+	yourrating = serializers.SerializerMethodField()
+
+	def get_yourrating(self, instance):
+		# return true if this item is bookmarked by the user
+		request = self.context.get("request")
+		if request:
+			try:
+				profile = request.user.profile
+				return models.Rating.objects.get(place=instance, profile=profile).rating
+			except:
+				return None
+		return None
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
@@ -414,8 +429,10 @@ class PlaceSerializer(serializers.ModelSerializer):
 		return instance.image.url if instance.image else None
 
 	def get_rating(self, instance):
-		# connect this to an average of ratings later
-		return 3.0
+		try:
+			return instance.rating()["rating__avg"]
+		except:
+			return None
 
 	def get_distance(self, instance):
 		# connect this to a distance calculation later
@@ -702,4 +719,23 @@ def RemoveList(request):
 			return Response( { "success": True, "id": int(request.data["id"]) } )
 		except:
 			return Response( { "success": False, "id": int(request.data["id"]) } )
+	return HttpResponse(status=400)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def AddRating(request):
+	if request.method == 'POST' and request.data["id"] and request.data["rating"]:
+		# try: 
+			place = models.Place.objects.get(id=int(request.data["id"]))
+			profile = request.user.profile
+			rating = models.Rating.objects.filter(profile=profile, place=place)
+			if rating:
+				rating.update(rating=int(request.data["rating"]))
+			else:
+				rating = models.Rating(profile=profile, place=place, rating=int(request.data["rating"]) )
+				rating.save()
+			return Response( { "success": True, "id": int(request.data["id"]), "rating": int(request.data["rating"]) } )
+		#except:
+		#	return HttpResponse(status=400)
 	return HttpResponse(status=400)

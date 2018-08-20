@@ -48,6 +48,11 @@ class MetroAdmin(admin.ModelAdmin):
 	list_display = ('name',)
 
 
+@admin.register(Rating)
+class RatingAdmin(admin.ModelAdmin):
+	list_display = ('profile','place','rating')
+
+
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
 	exclude = ('tips',)
