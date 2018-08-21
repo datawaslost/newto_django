@@ -2,6 +2,7 @@ import json
 import datetime
 
 from django.contrib.auth.models import User
+from django.contrib.gis.geos import Point, GEOSGeometry
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
@@ -90,8 +91,15 @@ class BookmarkSerializer(serializers.ModelSerializer):
 			return None
 
 	def get_distance(self, instance):
-		# connect this to a distance calculation later
-		return 1.7
+		request = self.context.get("request")
+		try:
+			place = getattr(instance, "place")
+			placeloc = place.location
+			profileloc = request.user.profile.location
+			distance = placeloc.distance(profileloc)
+		except:
+			return None
+		return int( distance * 100 * 6.21371 ) / 10
 
 	def get_items(self, instance):
 		try:
@@ -462,9 +470,16 @@ class PlaceSerializer(serializers.ModelSerializer):
 			return None
 
 	def get_distance(self, instance):
-		# connect this to a distance calculation later
-		return 1.7
-	
+		request = self.context.get("request")
+		try:
+			place = getattr(instance, "place")
+			placeloc = place.location
+			profileloc = request.user.profile.location
+			distance = placeloc.distance(profileloc)
+		except:
+			return None
+		return int( distance * 100 * 6.21371 ) / 10
+
 	class Meta:
 		model = models.Place
 		exclude = ('next', 'ctas', 'ratings', 'metro', 'category', 'tags')
@@ -753,7 +768,7 @@ def RemoveList(request):
 @permission_classes([permissions.IsAuthenticated])
 def AddRating(request):
 	if request.method == 'POST' and request.data["id"] and request.data["rating"]:
-		# try: 
+		try: 
 			place = models.Place.objects.get(id=int(request.data["id"]))
 			profile = request.user.profile
 			rating = models.Rating.objects.filter(profile=profile, place=place)
@@ -763,6 +778,20 @@ def AddRating(request):
 				rating = models.Rating(profile=profile, place=place, rating=int(request.data["rating"]) )
 				rating.save()
 			return Response( { "success": True, "id": int(request.data["id"]), "rating": int(request.data["rating"]) } )
+		except:
+			return HttpResponse(status=400)
+	return HttpResponse(status=400)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def Location(request):
+	if request.method == 'POST' and request.data["latitude"] and request.data["longitude"]:
+		# try: 
+			profile = request.user.profile
+			profile.location = Point(float(request.data["latitude"]), float(request.data["longitude"]))
+			profile.save()
+			return Response( { "success": True } )
 		#except:
 		#	return HttpResponse(status=400)
 	return HttpResponse(status=400)

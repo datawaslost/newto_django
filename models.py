@@ -18,6 +18,7 @@ class Profile(models.Model):
 	organization = models.ForeignKey('Organization', related_name='profile_organization', on_delete=models.SET_NULL, blank=True, null=True, default=1)
 	todo = models.ManyToManyField('Item', through='Todo', related_name='profile_todo')
 	bookmarks = models.ManyToManyField('Item', through='Bookmark', related_name='profile_bookmarks')
+	location = PointField(blank=True, null=True)
 
 	def __str__(self):
 		return self.user.email
@@ -96,8 +97,6 @@ class Place(Item):
 	city = models.CharField(max_length=128)
 	state = USStateField()
 	location = PointField(blank=True, null=True)
-	# hours = models.CharField(max_length=128)
-	# need more complex hours field, currently using openinghours
 	phone = PhoneNumberField(blank=True, verbose_name="Phone Number")
 	featured = models.BooleanField(default=False, help_text="Does this place show up as featured in search results?")
 	category = models.ManyToManyField('Category', blank=True, help_text="Categories that this place appears under in search results.")
