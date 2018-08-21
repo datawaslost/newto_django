@@ -1,5 +1,21 @@
 from django.contrib import admin
+
+# from openinghours.admin import OpeningHoursInline, ClosingRulesInline
+
 from .models import *
+
+from openinghours.models import OpeningHours, ClosingRules, Company
+
+
+class OpeningHoursInline(admin.TabularInline):
+	model = OpeningHours
+	extra = 0
+
+
+class ClosingRulesInline(admin.StackedInline):
+	model = ClosingRules
+	extra = 0
+
 
 
 class BookmarkInline(admin.TabularInline):
@@ -65,7 +81,8 @@ class PlaceAdmin(admin.ModelAdmin):
 	exclude = ('next', 'ctas')
 	list_display = ('name', 'metros', 'categories', 'featured')
 	list_filter = ('metro', 'category')
-	
+	inlines = [OpeningHoursInline, ClosingRulesInline]
+
 	def metros(self, obj):
 		return list(obj.metro.all())
 

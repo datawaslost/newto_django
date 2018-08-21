@@ -1,4 +1,5 @@
 import json
+import datetime
 
 from django.contrib.auth.models import User
 from django.http import HttpResponse, JsonResponse
@@ -11,6 +12,9 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from openinghours.models import WEEKDAYS, OpeningHours
+from openinghours import utils
 
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import Filter, FilterSet
@@ -401,6 +405,29 @@ class PlaceSerializer(serializers.ModelSerializer):
 	location = PointField(required=False)
 	bookmarked = serializers.SerializerMethodField()
 	yourrating = serializers.SerializerMethodField()
+	openhours = serializers.SerializerMethodField()
+
+	def get_openhours(self, instance):
+		now = datetime.datetime.now()
+		try: 
+			open = utils.is_open(instance, now=now)
+			if open:
+				openstring = "Open Now"
+			else:
+				openstring = "Closed Now"
+		except:
+			openstring = "Closed Now"
+		ohrs = OpeningHours.objects.filter(company=instance, weekday=now.isoweekday()).order_by('weekday','from_hour')
+		if len(ohrs) > 0:
+			openstring += " : "
+		for o in ohrs:
+			openstring += '%s%s to %s%s ' % (
+				o.from_hour.strftime('%I:%M').lstrip('0'),
+				o.from_hour.strftime('%p').lower(),
+				o.to_hour.strftime('%I:%M').lstrip('0'),
+				o.to_hour.strftime('%p').lower()
+			)
+		return openstring
 
 	def get_yourrating(self, instance):
 		# return true if this item is bookmarked by the user
