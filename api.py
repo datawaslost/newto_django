@@ -657,7 +657,6 @@ def passwordCheck(request):
 			validate_password(password=request.POST["password"])
 		except ValidationError as e:
 			return JsonResponse({'success': False, "error": str(e.error_list[0].message) })
-			# return JsonResponse(e.message_dict(), safe=False)
 		return JsonResponse({'success': True})
 	return HttpResponse(status=400)
 
@@ -738,6 +737,10 @@ def AddDone(request):
 			else:
 				todo = models.Todo(profile=profile, item=item, order=1, done=True)
 				todo.save()
+			# add next items to list here
+			for nextitem in todo.first().item.next.all():
+				if not models.Todo.objects.filter(profile=profile, item=nextitem).exists():
+					models.Todo(profile=profile, item=nextitem, order=1, done=False).save()
 			return Response( { "success": True, "id": int(request.data["id"]) } )
 		except:
 			return HttpResponse(status=400)
@@ -814,11 +817,11 @@ def AddRating(request):
 @permission_classes([permissions.IsAuthenticated])
 def Location(request):
 	if request.method == 'POST' and request.data["latitude"] and request.data["longitude"]:
-		# try: 
+		try: 
 			profile = request.user.profile
 			profile.location = Point(float(request.data["latitude"]), float(request.data["longitude"]))
 			profile.save()
 			return Response( { "success": True } )
-		#except:
-		#	return HttpResponse(status=400)
+		except:
+			return HttpResponse(status=400)
 	return HttpResponse(status=400)
