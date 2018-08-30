@@ -56,6 +56,18 @@ class BookmarkSerializer(serializers.ModelSerializer):
 	items = serializers.SerializerMethodField()
 	article = serializers.SerializerMethodField()
 	bookmarked = serializers.SerializerMethodField()
+	done = serializers.SerializerMethodField()
+
+	def get_done(self, instance):
+		# return true if this item is marked as done by the user, None if it does not exist
+		request = self.context.get("request")
+		if request:
+			try:
+				profile = request.user.profile
+				return models.Todo.objects.filter(item=instance, profile=profile).first().done
+			except:
+				return None
+		return None
 
 	def get_bookmarked(self, instance):
 		# these are bookmarks, they're all bookmarked
@@ -122,15 +134,15 @@ class ItemSerializer(serializers.ModelSerializer):
 	done = serializers.SerializerMethodField()
 
 	def get_done(self, instance):
-		# return true if this item is marked as done by the user
+		# return true if this item is marked as done by the user, None if it does not exist
 		request = self.context.get("request")
 		if request:
 			try:
 				profile = request.user.profile
-				return models.Todo.objects.filter(item=instance, profile=profile, done=True).exists()
+				return models.Todo.objects.filter(item=instance, profile=profile).first().done
 			except:
-				return False
-		return False
+				return None
+		return None
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
@@ -213,15 +225,15 @@ class TodoSerializer(DiscoverSerializer):
 	done = serializers.SerializerMethodField()
 
 	def get_done(self, instance):
-		# return true if this item is marked as done by the user
+		# return true if this item is marked as done by the user, None if it does not exist
 		request = self.context.get("request")
 		if request:
 			try:
 				profile = request.user.profile
-				return models.Todo.objects.filter(item=instance.item, profile=profile, done=True).exists()
+				return models.Todo.objects.filter(item=instance.item, profile=profile).first().done
 			except:
-				return False
-		return False
+				return None
+		return None
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
@@ -275,15 +287,15 @@ class FullItemSerializer(serializers.ModelSerializer):
 		return False
 
 	def get_done(self, instance):
-		# return true if this item is marked as done by the user
+		# return true if this item is marked as done by the user, None if it does not exist
 		request = self.context.get("request")
 		if request:
 			try:
 				profile = request.user.profile
-				return models.Todo.objects.filter(item=instance, profile=profile, done=True).exists()
+				return models.Todo.objects.filter(item=instance, profile=profile).first().done
 			except:
-				return False
-		return False
+				return None
+		return None
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
@@ -551,15 +563,15 @@ class GroupSerializer(serializers.ModelSerializer):
 		return False
 
 	def get_done(self, instance):
-		# return true if this item is marked as done by the user
+		# return true if this item is marked as done by the user, None if it does not exist
 		request = self.context.get("request")
 		if request:
 			try:
 				profile = request.user.profile
-				return models.Todo.objects.filter(item=instance, profile=profile, done=True).exists()
+				return models.Todo.objects.filter(item=instance, profile=profile).first().done
 			except:
-				return False
-		return False
+				return None
+		return None
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
