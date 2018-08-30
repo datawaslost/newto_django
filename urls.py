@@ -29,6 +29,7 @@ urlpatterns = [
 	url(r'^api/', include(router.urls)),
 	
 	url(r'^api/emailcheck/', api.emailCheck, name='emailcheck'),
+	url(r'^api/passwordcheck/', api.passwordCheck, name='passwordcheck'),
 	url(r'^api/onboarding/', api.onboarding, name='onboarding'),
 	url(r'^api/addbookmark/', api.AddBookmark, name='addbookmark'),
 	url(r'^api/removebookmark/', api.RemoveBookmark, name='removebookmark'),

@@ -3,10 +3,13 @@ import datetime
 
 from django.contrib.auth.models import User
 from django.contrib.gis.geos import Point, GEOSGeometry
+from django.contrib.auth.password_validation import validate_password
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from django.db import models as db_models
+from django.core.exceptions import ValidationError
+
 
 from rest_framework import serializers, viewsets, generics, authentication, permissions
 from rest_framework.decorators import api_view, permission_classes, authentication_classes #, action
@@ -644,6 +647,18 @@ def emailCheck(request):
 				return JsonResponse({'exists': False, 'organization': models.ProspectiveUser.objects.get(email=request.POST["email"]).organization.id})
 			return JsonResponse({'exists': False})
 		return JsonResponse({'exists': True})
+	return HttpResponse(status=400)
+
+
+@csrf_exempt
+def passwordCheck(request):
+	if request.method == 'POST' and request.POST.get('password', False):
+		try:
+			validate_password(password=request.POST["password"])
+		except ValidationError as e:
+			return JsonResponse({'success': False, "error": str(e.error_list[0].message) })
+			# return JsonResponse(e.message_dict(), safe=False)
+		return JsonResponse({'success': True})
 	return HttpResponse(status=400)
 
 
