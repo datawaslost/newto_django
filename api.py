@@ -815,6 +815,22 @@ def AddRating(request):
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
+def AddTodo(request):
+	if request.method == 'POST' and request.data["name"]:
+		try: 
+			item = models.Item(name=request.data["name"], public=False)
+			item.save()
+			profile = request.user.profile
+			todo = models.Todo(profile=profile, item=item, order=1, done=False)
+			todo.save()
+			return Response( { "success": True, "id": item.id } )
+		except:
+			return Response( { "success": False } )
+	return HttpResponse(status=400)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
 def Location(request):
 	if request.method == 'POST' and request.data["latitude"] and request.data["longitude"]:
 		try: 
