@@ -380,7 +380,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
 	def get_popular(self, instance):
 		# this needs to be a more complex algorithm for determiing popularity
-		qset = models.Item.objects.all().order_by('-id')[:10]
+		qset = models.Item.objects.filter(public=True).order_by('-id')[:10]
 		request = self._context.get("request")
 		return [ItemSerializer(m, context={'request': request}).data for m in qset]
 
