@@ -1,6 +1,9 @@
 import json
 import datetime
 
+from itertools import chain
+from operator import attrgetter
+
 from django.contrib.auth.models import User
 from django.contrib.gis.geos import Point, GEOSGeometry
 from django.contrib.auth.password_validation import validate_password
@@ -9,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from django.db import models as db_models
 from django.core.exceptions import ValidationError
-
+from django.db.models import Q, F, Count
 
 from rest_framework import serializers, viewsets, generics, authentication, permissions
 from rest_framework.decorators import api_view, permission_classes, authentication_classes #, action
@@ -254,6 +257,14 @@ class TodoSerializer(DiscoverSerializer):
 		exclude = ('profile', 'item')
 
 
+class PopSerializer(BookmarkSerializer):
+	score = serializers.SerializerMethodField()
+
+	def get_score(self, instance):
+		return instance.score
+
+	
+	
 class FullItemSerializer(serializers.ModelSerializer):
 	ctas = CtaSerializer(many=True)
 	image = serializers.SerializerMethodField()
@@ -379,10 +390,37 @@ class OrganizationSerializer(serializers.ModelSerializer):
 		return instance.nav_image.url if instance.nav_image else None
 
 	def get_popular(self, instance):
-		# this needs to be a more complex algorithm for determiing popularity
-		qset = models.Item.objects.filter(public=True).order_by('-id')[:10]
-		request = self._context.get("request")
-		return [ItemSerializer(m, context={'request': request}).data for m in qset]
+		# to determine popularity, we want a list of items that have been todo'd (added to a user's list) and bookmarked the most
+		# we could go through the database and iterate over each item with a for loop and do the math that way, but that's way too slow - too big of a db call and too much math being handled by python
+		# the goal is to put most of the work onto 1-2 database calls, so that SQL can do the heavy lifting - the filtering and adding up foreign keys
+		# a future version of this can be a bit more intensive, weighting date for each item, but would need to be cached so we're not hitting the db and doing all that math with every API call
+		
+		# Get all of the Todo's by users also in this organization, where the items are public
+		org_todos = models.Todo.objects.filter(profile__organization=instance.id, item__public=True).exclude(done=None)
+		# Todo is a through model that connects user profiles with item, and this will return a list of them
+		
+		# Count how many times each Item has been Todo'd and Bookmarked, add those numbers together, then sort by that number and take the top 20
+		items = models.Item.objects.filter(todo_item__in=org_todos).annotate(num_todos=Count('todo_item', distinct=True)).annotate(num_bookmarks=Count('bookmark_item', distinct=True)).annotate(score=F('num_todos') + F('num_bookmarks')).order_by('-score')[:20]
+		# Here we take the Item model, and filter it against that list of Todos, so we have a List of just Items.
+		# Then we add up those Items' connections to Todo and Bookmark models and add them together - annotate reveals these numbers in the user model
+		# Django will take both these lines and create a complex SQL statement to send to the database, something like:
+		# ('SELECT "newto_django_item"."id", "newto_django_item"."name", "newto_django_item"."content", "newto_django_item"."public", "newto_django_item"."sponsor", "newto_django_item"."link", "newto_django_item"."image", COUNT(DISTINCT "newto_django_todo"."id") AS "num_todos", COUNT(DISTINCT "newto_django_bookmark"."id") AS "num_bookmarks", (COUNT(DISTINCT "newto_django_todo"."id") + COUNT(DISTINCT "newto_django_bookmark"."id")) AS "score" FROM "newto_django_item" INNER JOIN "newto_django_todo" ON ("newto_django_item"."id" = "newto_django_todo"."item_id") LEFT OUTER JOIN "newto_django_bookmark" ON ("newto_django_item"."id" = "newto_django_bookmark"."item_id") WHERE "newto_django_todo"."id" IN (SELECT U0."id" FROM "newto_django_todo" U0 INNER JOIN "newto_django_item" U1 ON (U0."item_id" = U1."id") INNER JOIN "newto_django_profile" U2 ON (U0."profile_id" = U2."id") WHERE (U1."public" = True AND U2."organization_id" = 4 AND NOT (U0."done" IS NULL))) GROUP BY "newto_django_item"."id" ORDER BY "score" DESC LIMIT 20')
+		# Which will return a list of Items and their fields
+		
+		# Get all of the public places within the same metro as this Organization
+		org_places = models.Place.objects.filter(metro=instance.metro, public=True)
+		
+		# Count how many times each Place has been Bookmarked, times it by two so it worts well with the others, then sort by that number and take the top 10
+		places = models.Item.objects.filter(place__in=org_places).annotate(num_bookmarks=Count('bookmark_item', distinct=True)).annotate(score=F('num_bookmarks')*2).order_by('-score')[:10]
+		# This is another SQL call that looks like:
+		# ('SELECT "newto_django_item"."id", "newto_django_item"."name", "newto_django_item"."content", "newto_django_item"."public", "newto_django_item"."sponsor", "newto_django_item"."link", "newto_django_item"."image", COUNT(DISTINCT "newto_django_bookmark"."id") AS "num_bookmarks", (COUNT(DISTINCT "newto_django_bookmark"."id") * 2) AS "score" FROM "newto_django_item" INNER JOIN "newto_django_place" ON ("newto_django_item"."id" = "newto_django_place"."item_ptr_id") LEFT OUTER JOIN "newto_django_bookmark" ON ("newto_django_item"."id" = "newto_django_bookmark"."item_id") WHERE "newto_django_place"."item_ptr_id" IN (SELECT U0."item_ptr_id" FROM "newto_django_place" U0 INNER JOIN "newto_django_place_metro" U1 ON (U0."item_ptr_id" = U1."place_id") INNER JOIN "newto_django_item" U3 ON (U0."item_ptr_id" = U3."id") WHERE (U1."metro_id" = 3 AND U3."public" = True)) GROUP BY "newto_django_item"."id" ORDER BY "score" DESC LIMIT 10')
+		# Which will return a list of Items and their fields. Place is the child class of Item, so it makes sense to have a bunch of Items to combine, then sort out which ones are Places, Groups, etc in the API Serializer
+
+		# Now that we've got two lists of items, we can combine them, and sort them all (20 items, 10 places) by their score.
+		qset = sorted( chain(items, places), key=attrgetter('score'), reverse=True)
+
+		# Once we have one big list of items and their data, we send it to the API Serializer to be turned into JSON and sent back to the user
+		return [PopSerializer(m, context={'request': self._context.get("request")}).data for m in qset]
 
 	class Meta:
 		model = models.Organization
@@ -613,6 +651,12 @@ class MeSerializer(serializers.ModelSerializer):
 	bookmarks = BookmarkSerializer(many=True)
 	todo = serializers.SerializerMethodField()
 	organization= serializers.SerializerMethodField()
+	complete = serializers.SerializerMethodField()
+
+	def get_complete(self, instance):
+		qset = models.Todo.objects.filter(profile=instance, done=True)
+		request = self._context.get("request")
+		return [TodoSerializer(m, context={'request': request}).data for m in qset]
 
 	def get_todo(self, instance):
 		qset = models.Todo.objects.filter(profile=instance, done=False)
@@ -625,7 +669,7 @@ class MeSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Profile
-		fields = ('user', 'organization', 'id', 'todo', 'bookmarks', 'hometown')
+		fields = ('user', 'organization', 'id', 'todo', 'complete', 'bookmarks', 'hometown')
 
 
 class MeViewSet(viewsets.ReadOnlyModelViewSet):
