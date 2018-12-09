@@ -51,6 +51,7 @@ class Organization(models.Model):
 	nav_name = models.CharField(max_length=128, blank=True)
 	categories = models.ManyToManyField('Category', through='OrgCategory', related_name='organization_categories', blank=True, help_text="Categories to show on the search screen.")
 	link = models.URLField(blank=True, help_text="URL for Nav site")
+	location = PointField(blank=True, null=True)
 
 	def __str__(self):
 		return self.name
@@ -82,6 +83,9 @@ class Item(models.Model):
 	image = models.ImageField(blank=True) # use thumbnail field for image?
 	ctas = models.ManyToManyField('Cta', blank=True, help_text="Call To Action Buttons to be displayed.")
 	next = models.ManyToManyField('Item', related_name='next_items', symmetrical=False, blank=True, limit_choices_to={'place': None}, help_text="Items to be added to User's list when this item is completed.")
+	notes = models.TextField(blank=True, help_text="For internal use only, will not be shown")
+	tags = models.ManyToManyField('Tag', blank=True)
+	deadline = models.DateTimeField(blank=True)
 
 	def __str__(self):
 		return self.name
@@ -100,7 +104,6 @@ class Place(Item):
 	phone = PhoneNumberField(blank=True, verbose_name="Phone Number")
 	featured = models.BooleanField(default=False, help_text="Does this place show up as featured in search results?")
 	category = models.ManyToManyField('Category', blank=True, help_text="Categories that this place appears under in search results.")
-	tags = models.ManyToManyField('Tag', blank=True)
 	ratings = models.ManyToManyField('Profile', through='Rating', blank=True)
 
 	def rating(self):
