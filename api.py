@@ -185,17 +185,50 @@ class ItemSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Item
-		exclude = ('next', 'content', 'link', 'ctas', 'public')
+		exclude = ('next', 'content', 'link', 'ctas')
+
+
+class TagSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = models.Tag
+		fields = ('name', 'id')
 
 
 class DiscoverSerializer(serializers.ModelSerializer):
 	id = serializers.ReadOnlyField(source='item.id')
 	name = serializers.ReadOnlyField(source='item.name')
 	sponsor = serializers.ReadOnlyField(source='item.sponsor')
+	tags = TagSerializer(source='item.tags', many=True)
+	deadline = serializers.ReadOnlyField(source='item.deadline')
 	image = serializers.SerializerMethodField()
 	article = serializers.SerializerMethodField()
 	group = serializers.SerializerMethodField()
 	items = serializers.SerializerMethodField()
+	bookmarked = serializers.SerializerMethodField()
+	done = serializers.SerializerMethodField()
+	todo = serializers.SerializerMethodField()
+
+	def get_todo(self, instance):
+		# return true if this item is in the user's todo list
+		request = self.context.get("request")
+		if request:
+			try:
+				profile = request.user.profile
+				return models.Todo.objects.filter(item=instance.item, profile=profile).exists()
+			except:
+				return False
+		return False
+
+	def get_done(self, instance):
+		# return true if this item is marked as done by the user, None if it does not exist
+		request = self.context.get("request")
+		if request:
+			try:
+				profile = request.user.profile
+				return models.Todo.objects.filter(item=instance.item, profile=profile).first().done
+			except:
+				return None
+		return None
 
 	def get_group(self, instance):
 		try:
@@ -219,6 +252,17 @@ class DiscoverSerializer(serializers.ModelSerializer):
 		# returning image url if there is an image else blank string
 		return instance.item.image.url if instance.item.image else None
 
+	def get_bookmarked(self, instance):
+		# return true if this item is bookmarked by the user
+		request = self.context.get("request")
+		if request:
+			try:
+				profile = request.user.profile
+				return models.Bookmark.objects.filter(item=instance.item, profile=profile).exists()
+			except:
+				return False
+		return False
+
 	class Meta:
 		model = models.Discover
 		exclude = ('organization', 'item')
@@ -226,6 +270,7 @@ class DiscoverSerializer(serializers.ModelSerializer):
 
 class TodoSerializer(DiscoverSerializer):
 	content = serializers.ReadOnlyField(source='item.content')
+	public = serializers.ReadOnlyField(source='item.public')
 	ctas = CtaSerializer(source='item.ctas', many=True)
 	bookmarked = serializers.SerializerMethodField()
 	done = serializers.SerializerMethodField()
@@ -290,7 +335,7 @@ class FullItemSerializer(serializers.ModelSerializer):
 			return False
 
 	def get_todo(self, instance):
-		# return true if this item is marked as done by the user
+		# return true if this item is in the user's todo list
 		request = self.context.get("request")
 		if request:
 			try:
@@ -332,7 +377,7 @@ class FullItemSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Item
-		exclude = ('next', 'public',)
+		exclude = ('next',)
 
 
 class ItemViewSet(viewsets.ReadOnlyModelViewSet):
@@ -343,12 +388,6 @@ class ItemViewSet(viewsets.ReadOnlyModelViewSet):
 class MetroSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = models.Metro
-		fields = ('name', 'id')
-
-
-class TagSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = models.Tag
 		fields = ('name', 'id')
 
 
@@ -746,8 +785,12 @@ def AddBookmark(request):
 		try: 
 			item = models.Item.objects.get(id=int(request.data["id"]))
 			profile = request.user.profile
-			bookmark = models.Bookmark(profile=profile, item=item)
-			bookmark.save()
+			bookmark = models.Bookmark.objects.filter(profile=profile, item=item)
+			if bookmark:
+				bookmark.update(datetime=datetime.datetime.now())
+			else:
+				bookmark = models.Bookmark(profile=profile, item=item)
+				bookmark.save()
 			return Response( { "success": True, "id": int(request.data["id"]) } )
 		except:
 			return Response( { "success": False, "id": int(request.data["id"]) } )

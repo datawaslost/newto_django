@@ -85,7 +85,7 @@ class Item(models.Model):
 	next = models.ManyToManyField('Item', related_name='next_items', symmetrical=False, blank=True, limit_choices_to={'place': None}, help_text="Items to be added to User's list when this item is completed.")
 	notes = models.TextField(blank=True, help_text="For internal use only, will not be shown")
 	tags = models.ManyToManyField('Tag', blank=True)
-	deadline = models.DateTimeField(blank=True)
+	deadline = models.DateTimeField(blank=True, null=True)
 
 	def __str__(self):
 		return self.name
