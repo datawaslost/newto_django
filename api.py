@@ -128,7 +128,7 @@ class BookmarkSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Place
-		exclude = ('next', 'phone', 'metro', 'category', 'tags', 'ratings', 'address', 'city', 'state', 'ctas', 'content', 'public', 'link', 'location')
+		exclude = ('next', 'phone', 'metro', 'category', 'tags', 'ratings', 'address', 'city', 'state', 'ctas', 'content', 'public', 'link', 'location', 'notes')
 
 
 class ItemSerializer(serializers.ModelSerializer):
@@ -185,7 +185,7 @@ class ItemSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Item
-		exclude = ('next', 'content', 'link', 'ctas')
+		exclude = ('next', 'content', 'link', 'ctas', 'notes')
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -377,7 +377,7 @@ class FullItemSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Item
-		exclude = ('next',)
+		exclude = ('next','notes')
 
 
 class ItemViewSet(viewsets.ReadOnlyModelViewSet):
