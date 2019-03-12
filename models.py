@@ -86,6 +86,7 @@ class Item(models.Model):
 	notes = models.TextField(blank=True, help_text="For internal use only, will not be shown")
 	tags = models.ManyToManyField('Tag', blank=True)
 	deadline = models.DateTimeField(blank=True, null=True)
+	video = models.FileField(blank=True) # do we need to post-process this video in any way?
 
 	def __str__(self):
 		return self.name
