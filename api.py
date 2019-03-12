@@ -200,6 +200,7 @@ class DiscoverSerializer(serializers.ModelSerializer):
 	sponsor = serializers.ReadOnlyField(source='item.sponsor')
 	tags = TagSerializer(source='item.tags', many=True)
 	deadline = serializers.ReadOnlyField(source='item.deadline')
+	video = serializers.SerializerMethodField()
 	image = serializers.SerializerMethodField()
 	article = serializers.SerializerMethodField()
 	group = serializers.SerializerMethodField()
@@ -251,6 +252,10 @@ class DiscoverSerializer(serializers.ModelSerializer):
 	def get_image(self, instance):
 		# returning image url if there is an image else blank string
 		return instance.item.image.url if instance.item.image else None
+
+	def get_video(self, instance):
+		# returning image url if there is an image else blank string
+		return instance.item.video.url if instance.item.video else None
 
 	def get_bookmarked(self, instance):
 		# return true if this item is bookmarked by the user
